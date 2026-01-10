@@ -1,6 +1,6 @@
 **Ядро операционной системы**
 
-Добавлена возможность в ядре переключать расширения (extensions) на дебаг(debug) #define \_\_DBCN\_\_ или #undef \_\_DBCN\_\_ легаси(legacy) в функции sbi_console_printf
+Добавлена возможность в ядре переключать расширения (extensions), находящаяся в include/kernelSpace/config.h на дебаг(debug) #define \_\_DBCN\_\_ или #undef \_\_DBCN\_\_ легаси(legacy) в функции sbi_console_printf
 
 **Работа с консолью (libsbi/)**
 Cледующие описанные функции - интерфйес взаимодействия с SBI. Функции *sbi_debug_console_write* - записать в консоль строку указанного размера, *sbi_debug_console_read* - прочитать из консоли указанное кол-во символов, *sbi_debug_console_write_byte* - записать в консоль символ. Также есть устаревшие функции *sbi_console_putchar* - вывести символ в консоль, *sbi_console_getchar* - считать символ с клавиатуры. 
