@@ -7,15 +7,20 @@ ifeq ($(origin LD), default)
 endif
 
 CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv32imac -mabi=ilp32 -ggdb3
+ASFLAGS ?= -march=rv32imaczicsr -mabi=ilp32 -nostdlib
 OUT_ELF_DIR ?= ../build/kernelSpace
 LDFLAGS ?= -T main.lds
-COMMONINC = -I include
+COMMONINC = -I ../include/kernelSpace/  -I ../include/kernelSpace/libsbi/
 
 override CFLAGS += $(COMMONINC)
 
-CSRC = kernel.c
-
+CSRC = kernel.c libsbi/sci.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
+
+SSRC = libsbi/dbcn.S libsbi/le.S
+SOBJ = $(addprefix $(OUT_ELF_DIR)/, $(SSRC:.S=.o))
+
+ALLOBJ = $(COBJ) $(SOBJ)
 
 .PHONY: all
 all: $(OUT_ELF_DIR)/kernel.bin
@@ -24,8 +29,12 @@ $(COBJ): $(OUT_ELF_DIR)/%.o : %.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OUT_ELF_DIR)/kernel.elf: $(COBJ) main.lds
-	$(CC) $(CFLAGS) $(LDFLAGS) $(COBJ) -o $@
+$(SOBJ): $(OUT_ELF_DIR)/%.o : %.S
+	@mkdir -p $(@D)
+	$(CC) $(ASFLAGS) -c $< -o $@
+
+$(OUT_ELF_DIR)/kernel.elf: $(ALLOBJ) main.lds
+	$(CC) $(CFLAGS) $(LDFLAGS) $(ALLOBJ) -o $@
 
 $(OUT_ELF_DIR)/kernel.bin: $(OUT_ELF_DIR)/kernel.elf
 	$(LD) -O binary $< $@

@@ -9,8 +9,8 @@ endif
 ASFLAGS ?= -march=rv32imaczicsr -mabi=ilp32 -nostdlib
 OUT_ELF_DIR ?= ../build/bootloader
 LDFLAGS ?= -T bootloader.lds
-SRCS = bootloader.S
-OBJS = $(addprefix $(OUT_ELF_DIR)/, $(SRCS:.S=.o))
+SSRC = bootloader.S
+OBJS = $(addprefix $(OUT_ELF_DIR)/, $(SSRC:.S=.o))
 
 .PHONY: all
 all: $(OUT_ELF_DIR)/bootloader.bin

@@ -1,0 +1,17 @@
+/* Legacy Etensions */
+
+.section .text
+
+.global sbi_console_putchar
+sbi_console_putchar:
+	li a7, 0x01
+	li a6, 0x0
+	ecall
+	ret
+
+.global sbi_console_getchar
+sbi_console_getchar:
+	li a7, 0x02
+	li a6, 0x0
+	ecall
+	ret
