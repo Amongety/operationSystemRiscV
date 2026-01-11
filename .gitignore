@@ -1,4 +1,6 @@
 build
 .gdbinit
+.gitignore
 *.img
 *.iso
+
