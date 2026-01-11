@@ -1,0 +1,4 @@
+build
+.gdbinit
+*.img
+*.iso

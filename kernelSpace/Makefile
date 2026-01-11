@@ -17,7 +17,7 @@ override CFLAGS += $(COMMONINC)
 CSRC = kernel.c libsbi/sci.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
 
-SSRC = libsbi/dbcn.S libsbi/le.S
+SSRC = libsbi/dbcn.S libsbi/le.S arch/riscV/panic.S
 SOBJ = $(addprefix $(OUT_ELF_DIR)/, $(SSRC:.S=.o))
 
 ALLOBJ = $(COBJ) $(SOBJ)
