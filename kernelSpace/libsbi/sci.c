@@ -2,7 +2,7 @@
 
 #include "../../include/kernelSpace/libsbi/sci.h"
 
-sbi_ret_t sbi_console_printf(const char* format, ...) {
+sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -44,9 +44,23 @@ sbi_ret_t sbi_console_printf(const char* format, ...) {
                         break;
                     }
 
+		case 'x': 
+		    {
+			uint32_t value = va_arg(args, uint32_t);
+                    	for (int i = 7; i >= 0; i--) {
+                        	uint32_t nibble = (value >> (i * 4)) & 0xf;
+				#ifdef __DBCN__
+					if((err = sbi_debug_console_write_byte(*str)).error != 0) return err;
+				#else
+                        		if((err = sbi_console_putchar("0123456789abcdef"[nibble])) != 0) return err;
+				#endif
+                    	}
+			break;
+		    }
+
                 case 's':
                     {
-                        const char* str = va_arg(args, const char*);
+                        const unsigned char* str = va_arg(args, const unsigned char*);
                         while(*str) {
                             #ifdef __DBCN__
                                 if((err = sbi_debug_console_write_byte(*str)).error != 0) return err;

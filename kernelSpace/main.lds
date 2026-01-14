@@ -19,9 +19,9 @@ SECTIONS
 		*(.bss)
 	}
 
-	/*. = ALIGN(4);
-	. += 128 * 1024;  128KB 
-	_stack = .;*/
+	. = ALIGN(4);
+	. += 128 * 1024; /* 128KB */
+	_stack = .;
 
 	/DISCARD/ : { *(.eh_frame) }
 }

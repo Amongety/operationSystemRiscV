@@ -5,12 +5,13 @@
 
 #include "../config.h"
 #include <stdarg.h>
+#include <stdint.h>
 #include "le.h"
 #include "dbcn.h"
 
 extern void halt(void);
 
-sbi_ret_t sbi_console_printf(const char* format, ...);
+sbi_ret_t sbi_console_printf(const unsigned char* format, ...);
 
 #define PANIC(format, ...)											\
 	do {													\
