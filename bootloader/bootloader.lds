@@ -5,7 +5,7 @@ SECTIONS
 	. = 0x80200000;
 	.text : { *(.text) }
 	
-	. = ALIGN(4);
+	. = ALIGN(16);
 	. += 128 * 1024; /* 128KB */ 
 	_bootStack = .;
 }

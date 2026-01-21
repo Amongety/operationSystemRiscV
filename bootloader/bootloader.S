@@ -2,6 +2,7 @@
 .global boot
 boot:
 	la sp, _bootStack
+	mv fp, sp
 	
 	/* Добавить загрузку программы из диска в память */
 	

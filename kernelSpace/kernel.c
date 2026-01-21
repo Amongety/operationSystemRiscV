@@ -3,10 +3,14 @@
 
 void main() 
 {
-	kernel_init();
+	uint32_t *root_page_table = (uint32_t*)alloc_pages(1);
 
-        sbi_console_printf("Hello debug SBI!\n");
+	kernel_init(root_page_table);
 	
+        sbi_console_printf("Hello debug SBI!\n");
+
+	while(1) {}
+
 	/*
 	__asm__ __volatile__("unimp");
 	

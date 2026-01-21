@@ -10,11 +10,11 @@ CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv32imaczicsr -mabi=ilp32 -g
 ASFLAGS ?= -march=rv32imaczicsr -mabi=ilp32 -nostdlib
 OUT_ELF_DIR ?= ../build/kernelSpace
 LDFLAGS ?= -T main.lds
-COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/
+COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory
 
 override CFLAGS += $(COMMONINC)
 
-CSRC = kernel.c libsbi/sci.c arch/riscV/htrap.c
+CSRC = kernel.c libsbi/sci.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
 
 SSRC = libsbi/dbcn.S libsbi/le.S arch/riscV/panic.S arch/riscV/trap.S arch/riscV/kernel_init.S arch/riscV/common.S
