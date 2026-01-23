@@ -3,6 +3,8 @@
 boot:
 	la sp, _bootStack
 	mv fp, sp
+
+	la gp, _bootStartData
 	
 	/* Добавить загрузку программы из диска в память */
 	

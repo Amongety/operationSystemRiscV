@@ -4,6 +4,18 @@
 #include "common.h"
 #include "../../libsbi/sci.h"
 
+struct scause_t {
+	uint32_t exceptCode:31;
+	uint32_t interrupt:1;
+};
+
+struct tf_csr_t {
+	struct scause_t cause;
+	uint32_t tval;
+	uint32_t epc;
+	uint32_t status;
+};
+
 struct trap_frame {
 	uint32_t ra;
 	uint32_t sp;
@@ -36,8 +48,9 @@ struct trap_frame {
 	uint32_t t4;
 	uint32_t t5;
 	uint32_t t6;
+	struct tf_csr_t csr_reg;
 };
 
-void handler_trap(struct trap_frame* tf);
+uint32_t handler_trap(struct trap_frame* t);
 
 #endif

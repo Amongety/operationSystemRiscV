@@ -1,10 +1,11 @@
+.option norvc				/* Гарантия 4 байтного размера инструкций */
 
 .section .text
-.align 4 				/* Для гарантии 32 бита */ 	
+.align 4				/* Гарантия адреса кратного 4 байтам */
 .global asm_trap_vector
 asm_trap_vector:
 	csrw sscratch, sp
-	addi sp, sp, -4 * 31
+	addi sp, sp, -4 * 35
 	sw ra, 4 * 0(sp)
 	sw gp, 4 * 2(sp)
 	sw tp, 4 * 3(sp)
@@ -37,9 +38,21 @@ asm_trap_vector:
 	sw t6, 4 * 30(sp)
 	csrr a0, sscratch
 	sw a0, 4 * 1(sp)
+	
+	/* tf_csr_t */
+	csrr a0, scause
+	sw a0, 4 * 31(sp)
+	csrr a0, stval
+	sw a0, 4 * 32(sp)
+	csrr a0, sepc
+	sw a0, 4 * 33(sp)
+	csrr a0, sstatus
+	sw a0, 4 * 34(sp)
 
 	mv a0, sp
 	call handler_trap
+
+	csrw sepc, a0
 	
 	lw ra, 4 * 0(sp)
 	lw gp, 4 * 2(sp)

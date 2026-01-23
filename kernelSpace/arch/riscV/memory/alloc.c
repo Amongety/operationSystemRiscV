@@ -1,12 +1,5 @@
 #include "../../../../include/kernelSpace/arch/riscV/memory/alloc.h"
 
-void *memset(void *buf, char c, unsigned long n) {
-    uint8_t *p = (uint8_t *) buf;
-    while (n--)
-        *(p++) = c;
-    return buf;
-}
-
 unsigned char* alloc_pages(uint32_t n) {
 	if(n <= 0) PANIC("Error alloc page. n <= 0");
 

@@ -6,18 +6,18 @@ ifeq ($(origin LD), default)
 	LD = riscv64-unknown-elf-objcopy
 endif
 
-CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv32imaczicsr -mabi=ilp32 -ggdb3
-ASFLAGS ?= -march=rv32imaczicsr -mabi=ilp32 -nostdlib
+CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv32imac_zicsr_sstc -mabi=ilp32 -ggdb3
+ASFLAGS ?= -march=rv32imac_zicsr_sstc -mabi=ilp32 -nostdlib
 OUT_ELF_DIR ?= ../build/kernelSpace
 LDFLAGS ?= -T main.lds
-COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory
+COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory -I ../include/kernelSpace/libc/
 
 override CFLAGS += $(COMMONINC)
 
-CSRC = kernel.c libsbi/sci.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c
+CSRC = kernel.c libsbi/sci.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
 
-SSRC = libsbi/dbcn.S libsbi/le.S arch/riscV/panic.S arch/riscV/trap.S arch/riscV/kernel_init.S arch/riscV/common.S
+SSRC = libsbi/dbcn.S libsbi/le.S arch/riscV/panic.S arch/riscV/trap.S arch/riscV/kernel_init.S arch/riscV/common.S libsbi/te.S
 SOBJ = $(addprefix $(OUT_ELF_DIR)/, $(SSRC:.S=.o))
 
 ALLOBJ = $(COBJ) $(SOBJ)

@@ -6,6 +6,8 @@
 #include "../config.h"
 #include "sbi.h"
 
+extern long sbi_set_timer(uint64_t stime_value);
+
 extern long sbi_console_putchar(int ch);
 
 extern long sbi_console_getchar(void);

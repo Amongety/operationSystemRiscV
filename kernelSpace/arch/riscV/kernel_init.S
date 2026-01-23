@@ -20,6 +20,7 @@ kernel_init:
 	lw a0, 8(sp)
 	call init_virtual_memory
 	lw ra, 12(sp)
+	
 	addi sp, sp, 16
 
 	ret
