@@ -53,7 +53,7 @@ asm_trap_vector:
 	call handler_trap
 
 	csrw sepc, a0
-	
+
 	lw ra, 4 * 0(sp)
 	lw gp, 4 * 2(sp)
 	lw tp, 4 * 3(sp)
@@ -86,5 +86,5 @@ asm_trap_vector:
 	lw t6, 4 * 30(sp)
 	lw sp, 4 * 1(sp)
 
-	sret 
+	sret
 

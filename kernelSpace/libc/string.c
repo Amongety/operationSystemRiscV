@@ -7,3 +7,11 @@ void *memset(void *s, int c, unsigned long n) {
     return s;
 }
 
+void *memcpy(void *dst, const void *src, unsigned long n) {
+    uint8_t *d = (uint8_t *) dst;
+    const uint8_t *s = (const uint8_t *) src;
+    while (n--)
+        *d++ = *s++;
+    return dst;
+}
+

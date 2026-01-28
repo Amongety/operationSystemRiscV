@@ -1,6 +1,8 @@
 .section .text
 .global kernel_init
 kernel_init:
+	csrsi sstatus, 0x2
+
 	/* Загрузка стека */
 	la sp, _stack
 	mv fp, sp
@@ -17,7 +19,7 @@ kernel_init:
 	csrw stvec, t0
 
 	/* Инициализация виртуальной памяти */
-	lw a0, 8(sp)
+ 	lw a0, 8(sp)
 	call init_virtual_memory
 	lw ra, 12(sp)
 	

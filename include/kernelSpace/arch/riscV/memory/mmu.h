@@ -22,6 +22,7 @@ struct Table {
 };
 
 void map_page(struct Table* root, unsigned char* vaddr, unsigned char* paddr, uint32_t flags);
+void unmap_page(struct Table* root);
 void id_map_page_range(struct Table* root, unsigned char* start, unsigned char* end, uint32_t flags);
 
 #endif

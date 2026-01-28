@@ -32,6 +32,9 @@ void map_page(struct Table* root, unsigned char* vaddr, unsigned char* paddr, un
 	v->PNN1 = pnn[1];
 }
 
+void unmap_page(struct Table* root) {
+}
+
 void id_map_page_range(struct Table* root, unsigned char* start, unsigned char* end, unsigned long flags) {
 	unsigned long addr_end = (((unsigned long)end) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
 

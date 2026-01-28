@@ -6,5 +6,8 @@
 extern struct scause_t read_csr_scause(void);
 extern uint32_t read_csr_stval(void);
 extern uint32_t read_csr_sepc(void);
+extern uint32_t read_csr_sie(void);
+
+extern void write_csr_sie(uint32_t);
 
 #endif

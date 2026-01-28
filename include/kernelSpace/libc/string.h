@@ -4,5 +4,6 @@
 #include <stdint.h>
 
 void *memset(void *s, int c, unsigned long n);
+void *memcpy(void *dst, const void *src, unsigned long n);
 
 #endif

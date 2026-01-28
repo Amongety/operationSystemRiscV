@@ -9,9 +9,21 @@ uint32_t handler_trap(struct trap_frame *tf) {
 				sbi_console_printf("\nSupervisor software interrupt 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
-			case 5:
-				sbi_console_printf("\nSupervisor timer interrupt 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+			case 5: 
+			{
+				uint32_t sie = read_csr_sie();
+				write_csr_sie(sie & (!0x20));
+
+				/*struct Schedule_t curProc = schedule();
+				
+				sbi_set_timer(100000000);
+
+				switchProc(curProc.addrFrame, curProc.epc, curProc.atp);*/
+
+				sbi_console_printf("Timer!\n");
+
 				break;
+			}
 
 			case 9:
 				sbi_console_printf("\nSupervisor external interrupt 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);

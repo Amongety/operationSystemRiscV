@@ -6,6 +6,7 @@
 #include "../config.h"
 #include "sbi.h"
 
+// 1s: stime_value = 10000000
 extern long sbi_set_timer(uint64_t stime_value);
 
 extern long sbi_console_putchar(int ch);

@@ -16,4 +16,15 @@ read_csr_sepc:
 	csrr a0, sepc
 	ret
 
+.global read_csr_sie
+read_csr_sie:
+	csrr a0, sie
+	ret
+
+
 /* Write csr */
+.global write_csr_sie
+write_csr_sie:
+	csrw sie, a0
+	ret
+
