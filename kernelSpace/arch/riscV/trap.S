@@ -4,8 +4,8 @@
 .align 4				/* Гарантия адреса кратного 4 байтам */
 .global asm_trap_vector
 asm_trap_vector:
-	csrw sscratch, sp
-	addi sp, sp, -4 * 35
+	csrrw sp, sscratch, sp
+	addi sp, sp, -4 * 36
 	sw ra, 4 * 0(sp)
 	sw gp, 4 * 2(sp)
 	sw tp, 4 * 3(sp)
@@ -48,11 +48,17 @@ asm_trap_vector:
 	sw a0, 4 * 33(sp)
 	csrr a0, sstatus
 	sw a0, 4 * 34(sp)
+	csrr a0, satp
+	sw a0, 4 * 35(sp)
+
+	csrw sscratch, sp
 
 	mv a0, sp
 	call handler_trap
 
 	csrw sepc, a0
+
+	csrr sp, sscratch
 
 	lw ra, 4 * 0(sp)
 	lw gp, 4 * 2(sp)

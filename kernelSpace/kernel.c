@@ -3,18 +3,6 @@
 #include "../include/kernelSpace/process/process_control.h"
 #include "../include/kernelSpace/libsbi/te.h"
 
-extern unsigned char _data_start[];
-extern unsigned char _data_end[];
-extern unsigned char _bss_start[];
-extern unsigned char _bss_end[];
-extern unsigned char _stack[];
-extern unsigned char _text_start[];
-extern unsigned char _text_end[];
-extern unsigned char _rodata_start[];
-extern unsigned char _rodata_end[];
-
-//extern void main();
-
 void main() 
 {
 	uint32_t *root_page_table = (uint32_t*)alloc_pages(1);
@@ -30,10 +18,11 @@ void main()
 
 	sbi_console_printf("Hello debug SBI!\n");
 
-	//create_process((unsigned long)main);
-	sbi_set_timer(100000000);
+	create_process(0x20000000); // userSpace/user_test.c	 void main(void)
+	sbi_set_timer(1);
 
 	while(1) {
 		asm("wfi");
 	}
 }
+

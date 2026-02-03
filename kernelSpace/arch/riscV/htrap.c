@@ -12,15 +12,15 @@ uint32_t handler_trap(struct trap_frame *tf) {
 			case 5: 
 			{
 				uint32_t sie = read_csr_sie();
-				write_csr_sie(sie & (!0x20));
+				write_csr_sie(sie & (~0x20));
 
-				/*struct Schedule_t curProc = schedule();
+				if(prevProcess) *(prevProcess->frame) = *tf; 
 				
-				sbi_set_timer(100000000);
+				struct Process curProc = schedule();
+				
+				sbi_set_timer(10000000);
 
-				switchProc(curProc.addrFrame, curProc.epc, curProc.atp);*/
-
-				sbi_console_printf("Timer!\n");
+				switchProc(curProc.frame, curProc.frame->csr_reg.epc, curProc.frame->csr_reg.atp); // 0x80000000 | (curProc.pid << 22) | (((uint32_t)curProc.root) >> 12));
 
 				break;
 			}
@@ -83,18 +83,15 @@ uint32_t handler_trap(struct trap_frame *tf) {
 				break;
 
 			case 12:
-				sbi_console_printf("\nInstruction page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
-				next_epc += 4;
+				PANIC("\nInstruction page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 13:
-				sbi_console_printf("\nLoad page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
-				next_epc += 4;
+				PANIC("\nLoad page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 15:
-				sbi_console_printf("\nStore/AMO page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
-				next_epc += 4;
+				PANIC("\nStore/AMO page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 16:

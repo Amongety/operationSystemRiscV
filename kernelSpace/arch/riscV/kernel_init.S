@@ -1,11 +1,14 @@
 .section .text
 .global kernel_init
 kernel_init:
-	csrsi sstatus, 0x2
+	/* Чтобы поймать в регисте sie STIE */
+	li t1, 0x2 | 0x20 | 0x100
+	csrs sstatus, t1
 
 	/* Загрузка стека */
 	la sp, _stack
 	mv fp, sp
+	csrw sscratch, sp 
 
 	la gp, _data_start
 
