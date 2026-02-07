@@ -4,6 +4,7 @@
 #include "memory/mmu.h"
 #include "htrap.h"
 
-extern void kernel_init(uint32_t* root);
+extern void kernel_init(void);
+extern void init_virtual_memory(uint32_t* root); 
 
 #endif

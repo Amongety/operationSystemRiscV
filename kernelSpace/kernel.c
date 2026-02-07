@@ -5,9 +5,12 @@
 
 void main() 
 {
-	uint32_t *root_page_table = (uint32_t*)alloc_pages(1);
+	kernel_init();
+	
+	static volatile uint32_t root_page_table;
+	root_page_table = (uint32_t)alloc_pages(1);
 
-	kernel_init(root_page_table);
+	init_virtual_memory((uint32_t*)root_page_table);
 
 	sbi_console_printf("Text %x %x\n", _text_start, _text_end);
 	sbi_console_printf("Rodata %x %x\n", _rodata_start, _rodata_end);
@@ -18,8 +21,8 @@ void main()
 
 	sbi_console_printf("Hello debug SBI!\n");
 
-	create_process(0x20000000); // userSpace/user_test.c	 void main(void)
-	sbi_set_timer(1);
+	//create_process(0x20000000); // userSpace/user_test.c	 void main(void)
+	//sbi_set_timer(1);
 
 	while(1) {
 		asm("wfi");
