@@ -3,18 +3,42 @@
 unsigned char* alloc_pages(uint32_t n) {
 	if(n <= 0) PANIC("Error alloc page. n <= 0");
 
-	static unsigned char* next_phys_addr = _free_ram_start;
-	unsigned char* phys_addr = next_phys_addr;
+	uint32_t sz = n;
+	
+	int i = 0, endAddr = ((uint32_t)_free_ram_end - (uint32_t)_free_ram_start) / PAGE_SIZE;
 
-	next_phys_addr += PAGE_SIZE * n;
+	for(; i < endAddr && sz > 0; ++i) {
+		if(!buffFreeRam[i]) --sz;
+		else sz = n;
+	}
 
-	if(next_phys_addr > _free_ram_end) PANIC("Error alloc page. Address is full");
+	if(sz > 0) PANIC("Error alloc page. Address is full");
+	
+	int start = i - n;
+	if(start < 0) PANIC("Error alloc page. Go beyond");
+	
+	int end = i;
+	for(; start < end; ++start) buffFreeRam[start] = true;
 
-	memset((void *) phys_addr, 0, n * PAGE_SIZE);
+	uint32_t addr = (uint32_t)_free_ram_start;
 
-	return phys_addr;
+	memset((void*)(addr + ((i - n) * PAGE_SIZE)), 0, n * PAGE_SIZE);
+
+	return (unsigned char*)(addr + ((i - n) * PAGE_SIZE));
 }
 
-void dealloc_page(unsigned char* phys_addr) {
+void dealloc_page(unsigned char* phys_addr, uint32_t n) {
+	if(n <= 0) PANIC("Error dealloc page. n <= 0");
+
+	if((uint32_t)phys_addr < (uint32_t)_free_ram_start || (uint32_t)phys_addr >= (uint32_t)_free_ram_end) PANIC("Error dealloc page. Address invalid");
+
+	uint32_t addr = ((uint32_t)phys_addr - (uint32_t)_free_ram_start) / PAGE_SIZE;
+
+	if(addr + n > MAX_RAM) PANIC("Error dealloc page. Address is full");
+	
+	for(int i = 0; i < n; ++i) {
+		if(!buffFreeRam[addr + i]) PANIC("Error dealloc page. Double free");
+		buffFreeRam[addr + i] = false;
+	}
 }
 

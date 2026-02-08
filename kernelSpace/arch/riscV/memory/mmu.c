@@ -2,7 +2,7 @@
 
 void map_page(struct Table* root, unsigned char* vaddr, unsigned char* paddr, unsigned long flags) {
 	unsigned long vpn[2] = {((((unsigned long)vaddr) >> 12) & 0x3FF), ((((unsigned long)vaddr) >> 22) & 0x3FF)};
-	unsigned long pnn[2] = {((((unsigned long)paddr) >> 12) & 0x3FF), ((((unsigned long)paddr) >> 22) & 0xFFF)};
+	unsigned long ppn[2] = {((((unsigned long)paddr) >> 12) & 0x3FF), ((((unsigned long)paddr) >> 22) & 0xFFF)};
 
 	struct PageEntry* v = &root->entry[vpn[1]];
 
@@ -11,11 +11,11 @@ void map_page(struct Table* root, unsigned char* vaddr, unsigned char* paddr, un
 			unsigned long t = (unsigned long)alloc_pages(1);
 
 			v->V = 1;
-			v->PNN0 = t >> 12;
-			v->PNN1 = t >> 22;
+			v->PPN0 = t >> 12;
+			v->PPN1 = t >> 22;
 		}
 
-		struct Table* tmp = (struct Table*) ((v->PNN1 << 22) | (v->PNN0 << 12));
+		struct Table* tmp = (struct Table*) ((v->PPN1 << 22) | (v->PPN0 << 12));
 		v = &tmp->entry[vpn[i - 1]];
 	}
 	
@@ -28,11 +28,22 @@ void map_page(struct Table* root, unsigned char* vaddr, unsigned char* paddr, un
 	v->A = (flags >> 6) & 0x1;
 	v->D = (flags >> 7) & 0x1;
     	v->RSW = (flags >> 8) & 0x3;
-	v->PNN0 = pnn[0];
-	v->PNN1 = pnn[1];
+	v->PPN0 = ppn[0];
+	v->PPN1 = ppn[1];
 }
 
-void unmap_page(struct Table* root) {
+void unmap(struct Table* root) {
+	if(root == NULL) return;
+
+	for(int lvl1 = 0; lvl1 < EntryLen; ++lvl1) {
+		if(root->entry[lvl1].V == 1 && (root->entry[lvl1].X == 0 && root->entry[lvl1].W == 0 && root->entry[lvl1].R == 0)) { 
+			uint32_t tb_lvl0 = (uint32_t)((root->entry[lvl1].PPN1 << 22) | (root->entry[lvl1].PPN0 << 12));
+			
+			dealloc_page((unsigned char*)tb_lvl0, 1);
+		}
+	}
+
+	dealloc_page((unsigned char*)root, 1);
 }
 
 void id_map_page_range(struct Table* root, unsigned char* start, unsigned char* end, unsigned long flags) {
