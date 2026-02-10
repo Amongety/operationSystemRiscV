@@ -2,11 +2,13 @@
 
 int x = 0;
 
-void main() {
+int main() {
 	x++;
+	asm("addi sp, sp, -16");
 	int y = 0;
-	while(1) {
-		++y;
-		asm("nop");
-	}
+	++y;
+	asm("nop");
+	asm("addi sp, sp, +16");
+
+	return 0;
 }

@@ -3,3 +3,7 @@
 _start:
 	call main
 
+	/* exit */
+	li a7, 0x5d
+	ecall
+

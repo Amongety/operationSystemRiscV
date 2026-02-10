@@ -10,11 +10,11 @@ CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv32imac_zicsr_sstc -mabi=il
 ASFLAGS ?= -march=rv32imac_zicsr_sstc -mabi=ilp32 -nostdlib
 OUT_ELF_DIR ?= ../build/kernelSpace
 LDFLAGS ?= -T main.lds
-COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory -I ../include/kernelSpace/libc/ -I ../include/kernelSpace/process/
+COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory -I ../include/kernelSpace/libc/ -I ../include/kernelSpace/process/ -I ../include/kernelSpace/arch/riscV/systemCalls/
 
 override CFLAGS += $(COMMONINC)
 
-CSRC = kernel.c libsbi/sci.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c process/process_control.c
+CSRC = kernel.c libsbi/sci.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c process/process_control.c arch/riscV/systemCalls/syscall.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
 
 SSRC = libsbi/dbcn.S libsbi/le.S arch/riscV/panic.S arch/riscV/trap.S arch/riscV/kernel_init.S arch/riscV/common.S libsbi/te.S process/switch_context.S

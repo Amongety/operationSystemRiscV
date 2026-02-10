@@ -73,8 +73,8 @@ uint32_t handler_trap(struct trap_frame *tf) {
 				break;
 
 			case 8:
-				sbi_console_printf("\nEnvironment call (ecall) from U-mode! 0x%x\n\n", tf->csr_reg.epc);
-				next_epc += 4;
+				sbi_console_printf("\nCall. Environment call (ecall) from U-mode 0x%x\n\n", tf->csr_reg.epc);
+				next_epc = do_syscall(tf);
 				break;
 
 			case 9:

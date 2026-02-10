@@ -22,6 +22,8 @@ void main()
 	sbi_console_printf("Hello debug SBI!\n");
 
 	create_process(0x20000000); // userSpace/user_test.c	 void main(void)
+	create_process(0x20000000);
+	create_process(0x20000000); 
 	sbi_set_timer(1);
 
 	while(1) {
