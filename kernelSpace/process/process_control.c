@@ -49,6 +49,17 @@ struct Process* create_process(unsigned long func) {
 	return newProc;
 }
 
+void delete_process(struct Process* proc) {
+	sbi_console_printf("Curent Process deleting %d\n", proc->pid);
+
+	dealloc_page((unsigned char*)proc->frame, 1);
+	dealloc_page((unsigned char*)proc->processStack, 2);
+	dealloc_page((unsigned char*)proc->processData, 1);
+	unmap(proc->root);
+
+	memset((void*)proc, 0, sizeof(struct Process));
+}
+
 struct Process schedule() {
 	bufProc[0].state = SLEEPING;
 

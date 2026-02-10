@@ -20,11 +20,11 @@ unsigned char* alloc_pages(uint32_t n) {
 	int end = i;
 	for(; start < end; ++start) buffFreeRam[start] = true;
 
-	uint32_t addr = (uint32_t)_free_ram_start;
+	uint32_t addr = (((uint32_t)_free_ram_start) + ((i - n) * PAGE_SIZE));
 
-	memset((void*)(addr + ((i - n) * PAGE_SIZE)), 0, n * PAGE_SIZE);
+	memset((void*)addr, 0, n * PAGE_SIZE);
 
-	return (unsigned char*)(addr + ((i - n) * PAGE_SIZE));
+	return (unsigned char*)addr;
 }
 
 void dealloc_page(unsigned char* phys_addr, uint32_t n) {

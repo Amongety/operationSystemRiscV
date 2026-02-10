@@ -85,6 +85,7 @@ struct Process {
 };
 
 struct Process* create_process(unsigned long func);
+void delete_process(struct Process* proc); 
 struct Process schedule(void);
 extern void switchProc(struct trap_frame* addrFrame, uint32_t epc, uint32_t atp); 
 

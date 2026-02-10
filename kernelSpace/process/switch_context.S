@@ -4,18 +4,18 @@
 switchProc:
 	csrw sscratch, a0
 
-	li t1, (1 << 5) | (1 << 8)
+	li t1, 0x2 | 0x20 | 0x100
 	csrs sstatus, t1 			/* csrs - установка битов (ИЛИ) */
 
 	csrw sepc, a1
 	csrw satp, a2
 	sfence.vma
 	li t1, 0x222
-	csrw sie, t1
+	csrs sie, t1
 	la t2, asm_trap_vector
 	csrw stvec, t2
 
-	li t1, 1 << 8
+	li t1, 0x100
 	csrc sstatus, t1 			/* csrc - сброс бита (И) */
 
 	lw ra, 4 * 0(a0)
