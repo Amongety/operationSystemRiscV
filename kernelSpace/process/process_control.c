@@ -43,8 +43,8 @@ struct Process* create_process(unsigned long func) {
 	for(int i = 0; i < 17; ++i) map_page(newProc->root, (unsigned char*)(STACK_ADDR + PAGE_SIZE * i), (unsigned char*)(phys_addr_stack + PAGE_SIZE * i), 0x16);
 	map_page(newProc->root, (unsigned char*)newProc->frame->gp, (unsigned char*)newProc->processData, 0x16);			// временно
 	unsigned long alignFunc = func & (~(PAGE_SIZE - 1));
-	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR), (unsigned char*)(alignFunc), 0x1A);
-	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR + PAGE_SIZE), (unsigned char*)(alignFunc + PAGE_SIZE), 0x1A);
+	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR), (unsigned char*)(alignFunc), 0x1E);
+	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR + PAGE_SIZE), (unsigned char*)(alignFunc + PAGE_SIZE), 0x1E);
 
 	return newProc;
 }
