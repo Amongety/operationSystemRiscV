@@ -1,7 +1,7 @@
 #include "../../../include/kernelSpace/arch/riscV/htrap.h"
 
-uint32_t handler_trap(struct trap_frame *tf) {
-	uint32_t next_epc = tf->csr_reg.epc;
+uint64_t handler_trap(struct trap_frame *tf) {
+	uint64_t next_epc = tf->csr_reg.epc;
 
 	if(tf->csr_reg.cause.interrupt == 1) {
 		switch(tf->csr_reg.cause.exceptCode) {
@@ -11,7 +11,7 @@ uint32_t handler_trap(struct trap_frame *tf) {
 
 			case 5: 
 			{
-				uint32_t sie = read_csr_sie();
+				uint64_t sie = read_csr_sie();
 				write_csr_sie(sie & (~0x20));
 
 				if(prevProcess) *(prevProcess->frame) = *tf; 
@@ -20,7 +20,7 @@ uint32_t handler_trap(struct trap_frame *tf) {
 				
 				sbi_set_timer(10000000);
 
-				switchProc(curProc.frame, curProc.frame->csr_reg.epc, curProc.frame->csr_reg.atp); // 0x80000000 | (curProc.pid << 22) | (((uint32_t)curProc.root) >> 12));
+				switchProc(curProc.frame, curProc.frame->csr_reg.epc, curProc.frame->csr_reg.atp); // (0x8000000000000000 | (newProc->pid << 44) | (((uint64_t)newProc->root) >> 12));
 
 				break;
 			}
@@ -34,7 +34,7 @@ uint32_t handler_trap(struct trap_frame *tf) {
 				break;
 
 			default:
-				PANIC("\nException async! Interrupt = 0x%x, exception code = 0x%x(scause)\nInformation specific to this exception = 0x%x(stval)\nException address = 0x%x(sepc)\n\n", (uint32_t)tf->csr_reg.cause.interrupt, (uint32_t)tf->csr_reg.cause.exceptCode, tf->csr_reg.tval, tf->csr_reg.epc);
+				PANIC("\nException async! Interrupt = 0x%x, exception code = 0x%x(scause)\nInformation specific to this exception = 0x%x(stval)\nException address = 0x%x(sepc)\n\n", (uint64_t)tf->csr_reg.cause.interrupt, (uint64_t)tf->csr_reg.cause.exceptCode, tf->csr_reg.tval, tf->csr_reg.epc);
 		};
 	}
 
@@ -107,7 +107,7 @@ uint32_t handler_trap(struct trap_frame *tf) {
 				break;
 
 			default:
-				PANIC("\nException sync! Interrupt = 0x%x, exception code = 0x%x(scause)\nInformation specific to this exception = 0x%x(stval)\nException address = 0x%x(sepc)\n\n", (uint32_t)tf->csr_reg.cause.interrupt, (uint32_t)tf->csr_reg.cause.exceptCode, tf->csr_reg.tval, tf->csr_reg.epc);
+				PANIC("\nException sync! Interrupt = 0x%x, exception code = 0x%x(scause)\nInformation specific to this exception = 0x%x(stval)\nException address = 0x%x(sepc)\n\n", (uint64_t)tf->csr_reg.cause.interrupt, (uint64_t)tf->csr_reg.cause.exceptCode, tf->csr_reg.tval, tf->csr_reg.epc);
 		};
 	}
 

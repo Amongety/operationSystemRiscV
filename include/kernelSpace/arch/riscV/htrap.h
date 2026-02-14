@@ -9,6 +9,6 @@
 extern struct Process bufProc[PROCESS_MAX];
 extern struct Process* prevProcess;
 
-uint32_t handler_trap(struct trap_frame* t);
+uint64_t handler_trap(struct trap_frame* t);
 
 #endif

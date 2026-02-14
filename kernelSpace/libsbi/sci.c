@@ -18,7 +18,7 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
             switch(*format) {
                 case 'd':
                     {
-                        int value = va_arg(args, int);
+                        uint64_t value = va_arg(args, uint64_t);
                         if(value < 0) {
                             #ifdef __DBCN__
                                 if((err = sbi_debug_console_write_byte('-')).error != 0) return err;
@@ -29,7 +29,7 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
                             value = -value;
                         }
                         
-                        int div = 1;
+                        uint64_t div = 1;
                         while(value / div > 9) div *= 10;
 
                         while(div) {
@@ -46,9 +46,9 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
 
 		case 'x': 
 		    {
-			uint32_t value = va_arg(args, uint32_t);
-                    	for (int i = 7; i >= 0; i--) {
-                        	uint32_t nibble = (value >> (i * 4)) & 0xf;
+			uint64_t value = va_arg(args, uint64_t);
+                    	for (int i = 15; i >= 0; i--) {
+                        	uint64_t nibble = (value >> (i * 4)) & 0xf;
 				#ifdef __DBCN__
 					if((err = sbi_debug_console_write_byte(*str)).error != 0) return err;
 				#else

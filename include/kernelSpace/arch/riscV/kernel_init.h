@@ -5,6 +5,6 @@
 #include "htrap.h"
 
 extern void kernel_init(void);
-extern void init_virtual_memory(uint32_t* root); 
+extern void init_virtual_memory(uint64_t* root); 
 
 #endif

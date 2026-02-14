@@ -42,7 +42,7 @@
 extern struct Process bufProc[PROCESS_MAX];
 extern struct Process* prevProcess;
 
-uint32_t do_syscall(struct trap_frame* tf);
+uint64_t do_syscall(struct trap_frame* tf);
 void do_exit(void);
 
 #endif

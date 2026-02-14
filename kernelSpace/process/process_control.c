@@ -3,7 +3,7 @@
 struct Process bufProc[PROCESS_MAX];
 struct Process* prevProcess = NULL;
 
-struct Process* create_process(unsigned long func) {
+struct Process* create_process(uint64_t func) {
 	static unsigned int nPID = 0;
 
 	struct Process* newProc = NULL;
@@ -23,15 +23,15 @@ struct Process* create_process(unsigned long func) {
 	newProc->processData = alloc_pages(1);
 	newProc->pid = nPID;
 	newProc->state = SLEEPING;
-	newProc->frame->sp = STACK_ADDR + PAGE_SIZE * 2;
-	newProc->frame->fp = STACK_ADDR + PAGE_SIZE * 2;
+	newProc->frame->sp = (uint64_t)STACK_ADDR + PAGE_SIZE * 2;
+	newProc->frame->fp = (uint64_t)STACK_ADDR + PAGE_SIZE * 2;
 	newProc->frame->csr_reg.epc = func;
 	newProc->frame->gp = func + 0x1000; 	// временно
-	newProc->frame->csr_reg.atp = 0x80000000 | (newProc->pid << 22) | (((uint32_t)newProc->root) >> 12);
+	newProc->frame->csr_reg.atp = (uint64_t)(0x8000000000000000 | (newProc->pid << 44) | (((uint64_t)newProc->root) >> 12));
 
 	++nPID;
 
-	unsigned long phys_addr_stack = ((unsigned long)newProc->processStack) & (~(PAGE_SIZE - 1));
+	uint64_t phys_addr_stack = ((uint64_t)newProc->processStack) & (~(PAGE_SIZE - 1));
 
 	id_map_page_range(newProc->root, (unsigned char*)_free_ram_start, (unsigned char*)_free_ram_end, 0x6);
 	id_map_page_range(newProc->root, (unsigned char*)_text_start, (unsigned char*)_text_end, 0xA);
@@ -42,9 +42,9 @@ struct Process* create_process(unsigned long func) {
 	
 	for(int i = 0; i < 17; ++i) map_page(newProc->root, (unsigned char*)(STACK_ADDR + PAGE_SIZE * i), (unsigned char*)(phys_addr_stack + PAGE_SIZE * i), 0x16);
 	map_page(newProc->root, (unsigned char*)newProc->frame->gp, (unsigned char*)newProc->processData, 0x16);			// временно
-	unsigned long alignFunc = func & (~(PAGE_SIZE - 1));
-	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR), (unsigned char*)(alignFunc), 0x1A);
-	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR + PAGE_SIZE), (unsigned char*)(alignFunc + PAGE_SIZE), 0x1A);
+	uint64_t alignFunc = func & (~(PAGE_SIZE - 1));
+	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR), (unsigned char*)(alignFunc), 0x1E);
+	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR + PAGE_SIZE), (unsigned char*)(alignFunc + PAGE_SIZE), 0x1E);
 
 	return newProc;
 }

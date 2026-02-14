@@ -22,7 +22,8 @@ SECTIONS
 
 	.data : ALIGN(4096) {
 		_data_start = .;
-
+		
+		*(.sdata)
 		*(.data)
 
 		_data_end = .;
@@ -30,7 +31,8 @@ SECTIONS
 
 	.bss : ALIGN(4) {
 		_bss_start = .;
-
+		
+		*(.sbss)
 		*(.bss)
 
 		_bss_end = .;

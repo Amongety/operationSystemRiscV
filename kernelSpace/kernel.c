@@ -7,8 +7,8 @@ void main()
 {
 	kernel_init();
 	
-	static uint32_t* root_page_table;
-	root_page_table = (uint32_t*)alloc_pages(1);
+	static uint64_t* root_page_table;
+	root_page_table = (uint64_t*)alloc_pages(1);
 
 	init_virtual_memory(root_page_table);
 

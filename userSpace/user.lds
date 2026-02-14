@@ -14,10 +14,12 @@ SECTIONS
 
 	.data : ALIGN(4) {
 		_Udata = .;
+		*(.sdata)
 		*(.data)
 	}
 
 	.bss : ALIGN(4) {
+		*(.sbss)
 		*(.bss)
 	}
 	

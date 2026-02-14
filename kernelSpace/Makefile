@@ -6,8 +6,8 @@ ifeq ($(origin LD), default)
 	LD = riscv64-unknown-elf-objcopy
 endif
 
-CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv32imac_zicsr_sstc -mabi=ilp32 -ggdb3
-ASFLAGS ?= -march=rv32imac_zicsr_sstc -mabi=ilp32 -nostdlib
+CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv64imac_zicsr_sstc -mabi=lp64 -ggdb3 -mcmodel=medany
+ASFLAGS ?= -march=rv64imac_zicsr_sstc -mabi=lp64 -nostdlib -mcmodel=medany
 OUT_ELF_DIR ?= ../build/kernelSpace
 LDFLAGS ?= -T main.lds
 COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory -I ../include/kernelSpace/libc/ -I ../include/kernelSpace/process/ -I ../include/kernelSpace/arch/riscV/systemCalls/

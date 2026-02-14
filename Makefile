@@ -26,7 +26,8 @@ fileIso: bootloader kernelSpace userSpace
 
 .PHONY: qemu
 qemu:
-	qemu-system-riscv32 -machine virt -bios default -kernel build/bootloader/bootloader.elf -drive file=$(DISK_IMG),format=raw,if=none,id=hd0 -device virtio-blk-device,drive=hd0 -gdb tcp::26000 -S \
+	qemu-system-riscv64 -machine virt -bios default -kernel build/bootloader/bootloader.elf -drive file=$(DISK_IMG),format=raw,if=none,id=hd0 -device virtio-blk-device,drive=hd0 -gdb tcp::26000 -S \
+		-monitor stdio \
 	       	-device loader,file=build/kernelSpace/kernel.bin,addr=0x80400000 \
 		-device loader,file=build/userSpace/user.bin,addr=0x20000000
 

@@ -8,7 +8,7 @@ int main() {
 	int y = 0;
 	++y;
 	asm("nop");
-	asm("addi sp, sp, +16");
+	asm("addi sp, sp, 16");
 
 	return 0;
 }

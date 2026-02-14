@@ -6,7 +6,7 @@ ifeq ($(origin LD), default)
 	LD = riscv64-unknown-elf-objcopy
 endif
 
-ASFLAGS ?= -march=rv32imaczicsr -mabi=ilp32 -nostdlib
+ASFLAGS ?= -march=rv64imaczicsr -mabi=lp64 -nostdlib -mcmodel=medany
 OUT_ELF_DIR ?= ../build/bootloader
 LDFLAGS ?= -T bootloader.lds
 SSRC = bootloader.S

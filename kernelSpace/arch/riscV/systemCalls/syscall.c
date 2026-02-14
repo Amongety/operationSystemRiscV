@@ -1,6 +1,6 @@
 #include "../../../../include/kernelSpace/arch/riscV/systemCalls/syscall.h"
 
-uint32_t do_syscall(struct trap_frame* tf) {
+uint64_t do_syscall(struct trap_frame* tf) {
 	switch(tf->a7) {
 		case SYSCALL_EXIT:
 			do_exit();
@@ -17,5 +17,5 @@ void do_exit() {
 
 	struct Process curProc = schedule();
 
-	switchProc(curProc.frame, curProc.frame->csr_reg.epc, curProc.frame->csr_reg.atp); // 0x80000000 | (curProc.pid << 22) | (((uint32_t)curProc.root) >> 12));
+	switchProc(curProc.frame, curProc.frame->csr_reg.epc, curProc.frame->csr_reg.atp); // (0x8000000000000000 | (newProc->pid << 44) | (((uint64_t)newProc->root) >> 12));
 }
