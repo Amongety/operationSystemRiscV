@@ -15,7 +15,7 @@ struct Process* create_process(uint64_t func) {
 		}
 	}
 
-	if(newProc == NULL) PANIC("Process unit full\n");
+	if(newProc == NULL) PANIC("Process unit full");
 
 	newProc->frame = (struct trap_frame*)alloc_pages(1);
 	newProc->processStack = alloc_pages(2);
@@ -23,11 +23,11 @@ struct Process* create_process(uint64_t func) {
 	newProc->processData = alloc_pages(1);
 	newProc->pid = nPID;
 	newProc->state = SLEEPING;
-	newProc->frame->sp = (uint64_t)STACK_ADDR + PAGE_SIZE * 2;
-	newProc->frame->fp = (uint64_t)STACK_ADDR + PAGE_SIZE * 2;
+	newProc->frame->sp = (uint64_t)(STACK_ADDR + PAGE_SIZE * 2);
+	newProc->frame->fp = (uint64_t)(STACK_ADDR + PAGE_SIZE * 2);
 	newProc->frame->csr_reg.epc = func;
 	newProc->frame->gp = func + 0x1000; 	// временно
-	newProc->frame->csr_reg.atp = (uint64_t)(0x8000000000000000 | (newProc->pid << 44) | (((uint64_t)newProc->root) >> 12));
+	newProc->frame->csr_reg.atp = (uint64_t)(0x8000000000000000 | ((uint64_t)newProc->pid << 44) | (((uint64_t)newProc->root) >> 12));
 
 	++nPID;
 
@@ -39,7 +39,8 @@ struct Process* create_process(uint64_t func) {
 	id_map_page_range(newProc->root, (unsigned char*)_data_start, (unsigned char*)_data_end, 0x6);
 	id_map_page_range(newProc->root, (unsigned char*)_bss_start, (unsigned char*)_bss_end, 0x6);
 	id_map_page_range(newProc->root, (unsigned char*)_stack - 128 * 1024, (unsigned char*)_stack, 0x6);
-	
+	map_page(newProc->root, (unsigned char*)UART_ADDR, (unsigned char*)UART_ADDR, 0x6);
+
 	for(int i = 0; i < 17; ++i) map_page(newProc->root, (unsigned char*)(STACK_ADDR + PAGE_SIZE * i), (unsigned char*)(phys_addr_stack + PAGE_SIZE * i), 0x16);
 	map_page(newProc->root, (unsigned char*)newProc->frame->gp, (unsigned char*)newProc->processData, 0x16);			// временно
 	uint64_t alignFunc = func & (~(PAGE_SIZE - 1));
@@ -50,7 +51,7 @@ struct Process* create_process(uint64_t func) {
 }
 
 void delete_process(struct Process* proc) {
-	sbi_console_printf("Curent Process deleting %d\n", proc->pid);
+	console_printf("Curent Process deleting %d\r\n", proc->pid);
 
 	dealloc_page((unsigned char*)proc->frame, 1);
 	dealloc_page((unsigned char*)proc->processStack, 2);
@@ -74,7 +75,7 @@ struct Process schedule() {
 		sub_rotate();
 	}
 
-	sbi_console_printf("Current PID: %d\n", bufProc[0].pid);
+	console_printf("Current PID: %d\r\n", bufProc[0].pid);
 
 	prevProcess = &bufProc[0];
 

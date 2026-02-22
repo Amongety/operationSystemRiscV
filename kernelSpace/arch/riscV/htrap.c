@@ -6,7 +6,7 @@ uint64_t handler_trap(struct trap_frame *tf) {
 	if(tf->csr_reg.cause.interrupt == 1) {
 		switch(tf->csr_reg.cause.exceptCode) {
 			case 1:
-				sbi_console_printf("\nSupervisor software interrupt 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				console_printf("\nSupervisor software interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 5: 
@@ -26,88 +26,88 @@ uint64_t handler_trap(struct trap_frame *tf) {
 			}
 
 			case 9:
-				sbi_console_printf("\nSupervisor external interrupt 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				console_printf("\r\nSupervisor external interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 13:
-				sbi_console_printf("\nCounter-overflow interrupt 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				console_printf("\r\nCounter-overflow interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			default:
-				PANIC("\nException async! Interrupt = 0x%x, exception code = 0x%x(scause)\nInformation specific to this exception = 0x%x(stval)\nException address = 0x%x(sepc)\n\n", (uint64_t)tf->csr_reg.cause.interrupt, (uint64_t)tf->csr_reg.cause.exceptCode, tf->csr_reg.tval, tf->csr_reg.epc);
+				PANIC("\r\nException async! Interrupt = 0x%x, exception code = 0x%x(scause)\r\nInformation specific to this exception = 0x%x(stval)\r\nException address = 0x%x(sepc)\r\n\r\n", (uint64_t)tf->csr_reg.cause.interrupt, (uint64_t)tf->csr_reg.cause.exceptCode, tf->csr_reg.tval, tf->csr_reg.epc);
 		};
 	}
 
 	else {
 		switch(tf->csr_reg.cause.exceptCode) {
 			case 0:
-				PANIC("\nInstruction address misaligned 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nInstruction address misaligned 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 1:
-				PANIC("\nInstruction access fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nInstruction access fault 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 			
 			case 2:
-				PANIC("\nIllegal instruction 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nIllegal instruction 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 			
 			case 3:
-				PANIC("\nBreakpoint 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nBreakpoint 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 4:
-				PANIC("\nLoad address misaligned 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nLoad address misaligned 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 5:
-				PANIC("\nLoad access fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nLoad access fault 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 6:
-				PANIC("\nStore/AMO address misaligned 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nStore/AMO address misaligned 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 7:
-				PANIC("\nStore/AMO access fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nStore/AMO access fault 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 8:
-				sbi_console_printf("\nCall. Environment call (ecall) from U-mode 0x%x\n\n", tf->csr_reg.epc);
+				console_printf("\r\nCall. Environment call (ecall) from U-mode 0x%x\r\n\r\n", tf->csr_reg.epc);
 				next_epc = do_syscall(tf);
 				break;
 
 			case 9:
-				sbi_console_printf("\nEnvironment call (ecall) from S-mode! 0x%x\n\n", tf->csr_reg.epc);
+				console_printf("\r\nEnvironment call (ecall) from S-mode! 0x%x\r\n\r\n", tf->csr_reg.epc);
 				next_epc += 4;
 				break;
 
 			case 12:
-				PANIC("\nInstruction page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nInstruction page fault 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 13:
-				PANIC("\nLoad page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nLoad page fault 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 15:
-				PANIC("\nStore/AMO page fault 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nStore/AMO page fault 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 16:
-				PANIC("\nDouble trap 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nDouble trap 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 18:
-				PANIC("\nSoftware check 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nSoftware check 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 19:
-				PANIC("\nHardware error 0x%x: 0x%x\n\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				PANIC("\r\nHardware error 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			default:
-				PANIC("\nException sync! Interrupt = 0x%x, exception code = 0x%x(scause)\nInformation specific to this exception = 0x%x(stval)\nException address = 0x%x(sepc)\n\n", (uint64_t)tf->csr_reg.cause.interrupt, (uint64_t)tf->csr_reg.cause.exceptCode, tf->csr_reg.tval, tf->csr_reg.epc);
+				PANIC("\r\nException sync! Interrupt = 0x%x, exception code = 0x%x(scause)\r\nInformation specific to this exception = 0x%x(stval)\r\nException address = 0x%x(sepc)\r\n\r\n", (uint64_t)tf->csr_reg.cause.interrupt, (uint64_t)tf->csr_reg.cause.exceptCode, tf->csr_reg.tval, tf->csr_reg.epc);
 		};
 	}
 

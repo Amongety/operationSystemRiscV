@@ -7,7 +7,7 @@ uint64_t do_syscall(struct trap_frame* tf) {
 
 			break;
 		default:
-			sbi_console_printf("Indefinite system calls %d\n", tf->a7);
+			console_printf("Indefinite system calls %d\n", tf->a7);
 			return tf->csr_reg.epc + 4;
 	}
 }

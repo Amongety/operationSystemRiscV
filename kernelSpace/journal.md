@@ -1,13 +1,21 @@
 **Ядро операционной системы**
 
-kernel\_init производит базовую инициализацию стека и обработчика прерываний
+kernel\_init производит базовую инициализацию стека, обработчика прерываний, драйверов
 
-Добавлена возможность в ядре переключать расширения (extensions), находящаяся в include/kernelSpace/config.h на дебаг(debug) #define \_\_DBCN\_\_ или #undef \_\_DBCN\_\_ легаси(legacy) в функции sbi\_console\_printf
+TODO:
+- Добавить парсер dtb
+
+Добавлена возможность в ядре переключать SBI, драйвер, находящаяся в include/kernelSpace/config.h на дебаг(debug) #define \_\_DBCN\_\_ (#undef \_\_DBCN\_\_), легаси(legacy) #define \_\_CN\_\_ (#undef \_\_CN\_\_) и UART(default) #define \_\_UART\_USE0\_\_ (#undef \_\_UART\_USE0\_\_)  в функции console\_printf
 
 
-**Работа с консолью (libsbi/)**
+**Функции SBI (libsbi/)**
 Cледующие описанные функции - интерфйес взаимодействия с SBI. Функции *sbi_debug_console_write* - записать в консоль строку указанного размера, *sbi_debug_console_read* - прочитать из консоли указанное кол-во символов, *sbi_debug_console_write_byte* - записать в консоль символ. Также есть устаревшие функции *sbi_console_putchar* - вывести символ в консоль, *sbi_console_getchar* - считать символ с клавиатуры. 
-Также добавлена функция *sbi_conosle_printf* - которая асбтрагирует от SBI
+
+**Работа с отладкой (debug/)**
+Для вывода в консоль используется функция console\_printf()
+
+TODO:
+- Реализовать ввод
 
 
 **Исключение (arch/riscV/panic.S, .../htrap.c, .../trap.S)**
@@ -79,3 +87,12 @@ TODO:
 TODO:
 - Реализовать базовые системные вызовы согласно стандарту LINUX(https://syscalls.mebeim.net/?table=riscv/64/rv64/latest), согласно таблице выше
 
+
+**Драйвера (drivers/)**
+
+(drivers/uart.c)
+Реализован драйвер UART, с его помощью можно читать/записывать(uartRead/uartWrite) в коносоль данные
+
+TODO:
+- Уход от SBI
+- Реализовать таймер

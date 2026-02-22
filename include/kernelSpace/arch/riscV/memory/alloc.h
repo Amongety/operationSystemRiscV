@@ -2,7 +2,7 @@
 #define __ALLOC_H__
 
 #include <stdbool.h>
-#include "../../../libsbi/sci.h"
+#include "../../../debug/kdebug.h"
 #include "../../../libc/string.h"
 
 #define PAGE_SIZE 4096

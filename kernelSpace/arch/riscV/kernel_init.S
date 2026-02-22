@@ -1,3 +1,5 @@
+#include "../../../include/kernelSpace/drivers/mmio.h"
+
 .section .text
 .global kernel_init
 kernel_init:
@@ -61,6 +63,12 @@ init_virtual_memory:
 	la a2, _stack
 	li a3, 0x6
 	call id_map_page_range
+
+	ld a0, 0(sp)
+	la a1, UART_ADDR
+	la a2, UART_ADDR
+	li a3, 0x6
+	call map_page
 
 	ld a0, 0(sp)
 	mv t0, a0

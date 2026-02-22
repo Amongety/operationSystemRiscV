@@ -2,7 +2,7 @@
 #define __HTRAP_H__
 
 #include "common.h"
-#include "../../libsbi/sci.h"
+#include "../../debug/kdebug.h"
 #include "../../process/process_control.h"
 #include "systemCalls/syscall.h"
 

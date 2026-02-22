@@ -10,11 +10,11 @@ CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv64imac_zicsr_sstc -mabi=lp
 ASFLAGS ?= -march=rv64imac_zicsr_sstc -mabi=lp64 -nostdlib -mcmodel=medany
 OUT_ELF_DIR ?= ../build/kernelSpace
 LDFLAGS ?= -T main.lds
-COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory -I ../include/kernelSpace/libc/ -I ../include/kernelSpace/process/ -I ../include/kernelSpace/arch/riscV/systemCalls/
+COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory -I ../include/kernelSpace/libc/ -I ../include/kernelSpace/process/ -I ../include/kernelSpace/arch/riscV/systemCalls/ -I ../include/kernelSpace/drivers/ -I ../include/kernelSpace/drivers/uart -I ../include/kernelSpace/debug/
 
 override CFLAGS += $(COMMONINC)
 
-CSRC = kernel.c libsbi/sci.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c process/process_control.c arch/riscV/systemCalls/syscall.c
+CSRC = kernel.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c process/process_control.c arch/riscV/systemCalls/syscall.c drivers/uart/uart.c debug/kdebug.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
 
 SSRC = libsbi/dbcn.S libsbi/le.S arch/riscV/panic.S arch/riscV/trap.S arch/riscV/kernel_init.S arch/riscV/common.S libsbi/te.S process/switch_context.S

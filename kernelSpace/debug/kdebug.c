@@ -1,14 +1,14 @@
-/* sbi console interface */
+#include "../../include/kernelSpace/debug/kdebug.h"
 
-#include "../../include/kernelSpace/libsbi/sci.h"
-
-sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
+console_ret_t console_printf(const unsigned char* format, ...) {
     va_list args;
     va_start(args, format);
 
-    #ifdef __DBCN__
+    #if defined(__UART_USE0__)
+       int err;
+    #elif defined(__DBCN__)
         struct sbiret err;
-    #else
+    #elif defined(__CN__)
         int err;
     #endif
 
@@ -20,9 +20,11 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
                     {
                         uint64_t value = va_arg(args, uint64_t);
                         if(value < 0) {
-                            #ifdef __DBCN__
+			    #if defined(__UART_USE0__)
+				uartWrite('-');	
+			    #elif defined(__DBCN__)
                                 if((err = sbi_debug_console_write_byte('-')).error != 0) return err;
-                            #else
+                            #elif defined(__CN__)
                                 if((err = sbi_console_putchar('-')) != 0) return err;
                             #endif
 
@@ -33,9 +35,11 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
                         while(value / div > 9) div *= 10;
 
                         while(div) {
-                            #ifdef __DBCN__
+			    #if defined(__UART_USE0__)
+				uartWrite((value / div % 10) | 0x30);
+                            #elif defined(__DBCN__)
                                 if((err = sbi_debug_console_write_byte((value / div % 10) | 0x30)).error != 0) return err;
-                            #else
+                            #elif defined(__CN__)
                                 if((err = sbi_console_putchar((value / div % 10) | 0x30)) != 0) return err;
                             #endif
 
@@ -49,9 +53,11 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
 			uint64_t value = va_arg(args, uint64_t);
                     	for (int i = 15; i >= 0; i--) {
                         	uint64_t nibble = (value >> (i * 4)) & 0xf;
-				#ifdef __DBCN__
-					if((err = sbi_debug_console_write_byte(*str)).error != 0) return err;
-				#else
+				#if defined(__UART_USE0__)
+					uartWrite("0123456789abcdef"[nibble]);
+				#elif defined(__DBCN__)
+					if((err = sbi_debug_console_write_byte("0123456789abcdef"[nibble]))).error != 0) return err;
+				#elif defined(__CN__)
                         		if((err = sbi_console_putchar("0123456789abcdef"[nibble])) != 0) return err;
 				#endif
                     	}
@@ -62,9 +68,11 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
                     {
                         const unsigned char* str = va_arg(args, const unsigned char*);
                         while(*str) {
-                            #ifdef __DBCN__
+			    #if defined(__UART_USE0__)
+				uartWrite(*str);
+                            #elif defined(__DBCN__)
                                 if((err = sbi_debug_console_write_byte(*str)).error != 0) return err;
-                            #else
+                            #elif defined(__CN__)
                                 if((err = sbi_console_putchar(*str)) != 0) return err;
                             #endif
 
@@ -76,9 +84,11 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
                 case 'c':
                     {
                         int s = va_arg(args, int);
-                        #ifdef __DBCN__
+			#if defined(__UART_USE0__)
+				uartWrite(s);
+                        #elif defined(__DBCN__)
                             if((err = sbi_debug_console_write_byte(s)).error != 0) return err;
-                        #else
+                        #elif defined(__CN__)
                             if((err = sbi_console_putchar(s)) != 0) return err;
                         #endif
 
@@ -87,9 +97,11 @@ sbi_ret_t sbi_console_printf(const unsigned char* format, ...) {
             }
         }
         else {
-            #ifdef __DBCN__
+	    #if defined(__UART_USE0__)
+		uartWrite(*format);
+            #elif defined(__DBCN__)
                 if((err = sbi_debug_console_write_byte(*format)).error != 0) return err;
-            #else
+            #elif defined(__CN__)
                 if((err = sbi_console_putchar(*format)) != 0) return err;
             #endif
         }

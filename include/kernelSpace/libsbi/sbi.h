@@ -12,9 +12,9 @@ struct sbiret {
 };
 
 #ifdef __DBCN__
-	typedef struct sbiret sbi_ret_t;
+	typedef struct sbiret console_ret_t;
 #else
-	typedef int sbi_ret_t;
+	typedef int console_ret_t;
 #endif
 
 #endif
