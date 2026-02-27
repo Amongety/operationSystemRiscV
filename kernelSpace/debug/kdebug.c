@@ -21,7 +21,7 @@ console_ret_t console_printf(const unsigned char* format, ...) {
                         uint64_t value = va_arg(args, uint64_t);
                         if(value < 0) {
 			    #if defined(__UART_USE0__)
-				uartWrite('-');	
+				uartWrite(UART_ADDR, '-');	
 			    #elif defined(__DBCN__)
                                 if((err = sbi_debug_console_write_byte('-')).error != 0) return err;
                             #elif defined(__CN__)
@@ -36,7 +36,7 @@ console_ret_t console_printf(const unsigned char* format, ...) {
 
                         while(div) {
 			    #if defined(__UART_USE0__)
-				uartWrite((value / div % 10) | 0x30);
+				uartWrite(UART_ADDR, (value / div % 10) | 0x30);
                             #elif defined(__DBCN__)
                                 if((err = sbi_debug_console_write_byte((value / div % 10) | 0x30)).error != 0) return err;
                             #elif defined(__CN__)
@@ -54,7 +54,7 @@ console_ret_t console_printf(const unsigned char* format, ...) {
                     	for (int i = 15; i >= 0; i--) {
                         	uint64_t nibble = (value >> (i * 4)) & 0xf;
 				#if defined(__UART_USE0__)
-					uartWrite("0123456789abcdef"[nibble]);
+					uartWrite(UART_ADDR, "0123456789abcdef"[nibble]);
 				#elif defined(__DBCN__)
 					if((err = sbi_debug_console_write_byte("0123456789abcdef"[nibble]))).error != 0) return err;
 				#elif defined(__CN__)
@@ -69,7 +69,7 @@ console_ret_t console_printf(const unsigned char* format, ...) {
                         const unsigned char* str = va_arg(args, const unsigned char*);
                         while(*str) {
 			    #if defined(__UART_USE0__)
-				uartWrite(*str);
+				uartWrite(UART_ADDR, *str);
                             #elif defined(__DBCN__)
                                 if((err = sbi_debug_console_write_byte(*str)).error != 0) return err;
                             #elif defined(__CN__)
@@ -85,7 +85,7 @@ console_ret_t console_printf(const unsigned char* format, ...) {
                     {
                         int s = va_arg(args, int);
 			#if defined(__UART_USE0__)
-				uartWrite(s);
+				uartWrite(UART_ADDR, s);
                         #elif defined(__DBCN__)
                             if((err = sbi_debug_console_write_byte(s)).error != 0) return err;
                         #elif defined(__CN__)
@@ -98,7 +98,7 @@ console_ret_t console_printf(const unsigned char* format, ...) {
         }
         else {
 	    #if defined(__UART_USE0__)
-		uartWrite(*format);
+		uartWrite(UART_ADDR, *format);
             #elif defined(__DBCN__)
                 if((err = sbi_debug_console_write_byte(*format)).error != 0) return err;
             #elif defined(__CN__)
@@ -111,3 +111,8 @@ console_ret_t console_printf(const unsigned char* format, ...) {
 
     return err;
 }
+
+uint8_t console_getchar(void) {
+	return uartRead(UART_ADDR);
+}
+

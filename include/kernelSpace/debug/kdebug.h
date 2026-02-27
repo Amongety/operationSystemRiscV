@@ -11,6 +11,7 @@
 extern void halt(void);
 
 console_ret_t console_printf(const unsigned char* format, ...);
+uint8_t console_getchar(void);
 
 #define PANIC(format, ...)											\
 	do {													\

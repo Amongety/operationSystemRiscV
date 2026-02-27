@@ -3,6 +3,12 @@
 
 #include "../mmio.h"
 
+enum UARTmode{
+	queryMode = 0,
+	interruptMode,
+	DMAMode
+};
+
 struct UartReg {
 	volatile uint8_t RBR_THR_DLL;
 	volatile uint8_t IER_DLH;
@@ -32,8 +38,8 @@ struct UartReg {
 	volatile uint64_t RESERVED:13;
 };
 
-void init_uart(void);
-void uartWrite(uint8_t symbol);
-uint8_t uartRead(void); 
+void init_uart(uint64_t uartAddr, enum UARTmode mode);
+void uartWrite(uint64_t uartAddr, uint8_t symbol);
+uint8_t uartRead(uint64_t uartAddr); 
 
 #endif

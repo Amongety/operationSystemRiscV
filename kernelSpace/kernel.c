@@ -11,8 +11,8 @@ void main()
 
 	init_virtual_memory(root_page_table);
 
-	init_uart();
-	
+	init_uart(queryMode, UART_ADDR);
+
 	console_printf("Text %x %x\r\n", _text_start, _text_end);
 	console_printf("Rodata %x %x\r\n", _rodata_start, _rodata_end);
 	console_printf("Data %x %x\r\n", _data_start, _data_end);
