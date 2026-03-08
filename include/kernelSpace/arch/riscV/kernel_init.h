@@ -2,6 +2,9 @@
 #define __KERNEL_INIT_H__
 
 #include "htrap.h"
+#include "../../../bootloader/DTB/platformDevices.h"
+
+struct dtbPlatform globalDTB;
 
 extern void kernel_init(void);
 extern void init_virtual_memory(uint64_t* root); 

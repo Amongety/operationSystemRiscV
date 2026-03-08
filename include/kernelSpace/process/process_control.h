@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include "../arch/riscV/memory/mmu.h"
+#include "../../bootloader/DTB/platformDevices.h"
 
 #define PROCESS_MAX 8
 
@@ -18,6 +19,8 @@ extern unsigned char _text_start[];
 extern unsigned char _text_end[];
 extern unsigned char _rodata_start[];
 extern unsigned char _rodata_end[];
+
+extern struct dtbPlatform globalDTB;
 
 struct scause_t {
 	uint64_t exceptCode:63;

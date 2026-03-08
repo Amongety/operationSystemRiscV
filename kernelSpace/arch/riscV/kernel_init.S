@@ -65,8 +65,9 @@ init_virtual_memory:
 	call id_map_page_range
 
 	ld a0, 0(sp)
-	la a1, UART_ADDR
-	la a2, UART_ADDR
+	la t0, globalDTB
+	lw a1, 0(t0)
+	lw a2, 0(t0)
 	li a3, 0x6
 	call map_page
 

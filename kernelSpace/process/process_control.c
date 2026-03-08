@@ -39,7 +39,7 @@ struct Process* create_process(uint64_t func) {
 	id_map_page_range(newProc->root, (unsigned char*)_data_start, (unsigned char*)_data_end, 0x6);
 	id_map_page_range(newProc->root, (unsigned char*)_bss_start, (unsigned char*)_bss_end, 0x6);
 	id_map_page_range(newProc->root, (unsigned char*)_stack - 128 * 1024, (unsigned char*)_stack, 0x6);
-	map_page(newProc->root, (unsigned char*)UART_ADDR, (unsigned char*)UART_ADDR, 0x6);
+	map_page(newProc->root, (unsigned char*)globalDTB.uart[0].addr, (unsigned char*)globalDTB.uart[0].addr, 0x6);
 
 	for(int i = 0; i < 17; ++i) map_page(newProc->root, (unsigned char*)(STACK_ADDR + PAGE_SIZE * i), (unsigned char*)(phys_addr_stack + PAGE_SIZE * i), 0x16);
 	map_page(newProc->root, (unsigned char*)newProc->frame->gp, (unsigned char*)newProc->processData, 0x16);			// временно

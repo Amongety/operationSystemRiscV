@@ -5,6 +5,4 @@
 	#include <stdint.h>
 #endif
 
-#define UART_ADDR 0x10000000
-
 #endif

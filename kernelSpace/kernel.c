@@ -2,17 +2,20 @@
 #include "../include/kernelSpace/arch/riscV/kernel_init.h"
 #include "../include/kernelSpace/libsbi/te.h"
 
-void main() 
+void main(struct dtbPlatform dtb) 
 {
 	kernel_init();
+
+	globalDTB = dtb;
 	
 	static uint64_t* root_page_table;
 	root_page_table = (uint64_t*)alloc_pages(1);
 
 	init_virtual_memory(root_page_table);
 
-	init_uart(queryMode, UART_ADDR);
+	init_uart(queryMode, globalDTB.uart[0].addr);
 
+	
 	console_printf("Text %x %x\r\n", _text_start, _text_end);
 	console_printf("Rodata %x %x\r\n", _rodata_start, _rodata_end);
 	console_printf("Data %x %x\r\n", _data_start, _data_end);
@@ -21,11 +24,13 @@ void main()
 	console_printf("FreeRam %x %x\r\n", _free_ram_start, _free_ram_end);
 
 	console_printf("Hello debug SBI!\r\n");
-
+	
+	/*
 	create_process(0x20000000); // userSpace/user_test.c	 void main(void)
 	create_process(0x20000000);
 	create_process(0x20000000); 
 	sbi_set_timer(1);
+	*/
 
 	while(1) {
 		asm("wfi");

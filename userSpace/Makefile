@@ -3,7 +3,7 @@ ifeq ($(origin CC), default)
 endif
 
 ifeq ($(origin LD), default)
-	OBJCOPY = riscv64-unknown-elf-objcopy
+	LD = riscv64-unknown-elf-ld
 endif
 
 CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv64imac_zicsr_sstc -mabi=lp64 -ggdb3 -mcmodel=medany
@@ -13,6 +13,8 @@ LDFLAGS ?= -T user.lds
 COMMONINC = -I ../include/userSpace/
 
 override CFLAGS += $(COMMONINC)
+
+OBJCOPY = riscv64-unknown-elf-objcopy
 
 CSRC = user_test.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))

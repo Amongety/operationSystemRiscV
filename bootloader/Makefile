@@ -1,29 +1,45 @@
-ifeq ($(origin AS), default)
-	AS = riscv64-unknown-elf-gcc
+ifeq ($(origin CC), default)
+	CC = riscv64-unknown-elf-gcc
 endif
 
 ifeq ($(origin LD), default)
-	LD = riscv64-unknown-elf-objcopy
+	LD = riscv64-unknown-elf-ld
 endif
 
-ASFLAGS ?= -march=rv64imaczicsr -mabi=lp64 -nostdlib -mcmodel=medany
+OBJCOPY = riscv64-unknown-elf-objcopy
+
+CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv64imac_zicsr_sstc -mabi=lp64 -ggdb3 -mcmodel=medany
+ASFLAGS ?= -march=rv64imac_zicsr_sstc -mabi=lp64 -nostdlib -mcmodel=medany
 OUT_ELF_DIR ?= ../build/bootloader
 LDFLAGS ?= -T bootloader.lds
-SSRC = bootloader.S
-OBJS = $(addprefix $(OUT_ELF_DIR)/, $(SSRC:.S=.o))
+COMMONINC =  -I ../include/bootloader/DTB/ -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/libc/
+
+override CFLAGS += $(COMMONINC)
+
+CSRC = DTB/dtb.c ../kernelSpace/libc/byteOrder.c ../kernelSpace/libc/string.c
+COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
+
+SSRC = bootloader.S ../kernelSpace/libsbi/dbcn.S ../kernelSpace/libsbi/le.S ../kernelSpace/libsbi/te.S 
+SOBJ = $(addprefix $(OUT_ELF_DIR)/, $(SSRC:.S=.o))
+
+ALLOBJ = $(SOBJ) $(COBJ)
 
 .PHONY: all
 all: $(OUT_ELF_DIR)/bootloader.bin
 
-$(OBJS): $(OUT_ELF_DIR)/%.o : %.S
+$(COBJ): $(OUT_ELF_DIR)/%.o : %.c
 	@mkdir -p $(@D)
-	$(AS) $(ASFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OUT_ELF_DIR)/bootloader.elf: $(OBJS) bootloader.lds
-	$(AS) $(ASFLAGS) $(LDFLAGS) $(OBJS) -o $@
+$(SOBJ): $(OUT_ELF_DIR)/%.o : %.S
+	@mkdir -p $(@D)
+	$(CC) $(ASFLAGS) -c $< -o $@
+
+$(OUT_ELF_DIR)/bootloader.elf: $(ALLOBJ) bootloader.lds
+	$(CC) $(CFLAGS) $(LDFLAGS) $(ALLOBJ) -o $@
 
 $(OUT_ELF_DIR)/bootloader.bin: $(OUT_ELF_DIR)/bootloader.elf
-	$(LD) -O binary $< $@
+	$(OBJCOPY) -O binary $< $@
 
 .PHONY: clean
 clean:

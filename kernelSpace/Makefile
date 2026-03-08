@@ -3,8 +3,10 @@ ifeq ($(origin CC), default)
 endif
 
 ifeq ($(origin LD), default)
-	LD = riscv64-unknown-elf-objcopy
+	LD = riscv64-unknown-elf-ld
 endif
+
+OBJCOPY = riscv64-unknown-elf-objcopy
 
 CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv64imac_zicsr_sstc -mabi=lp64 -ggdb3 -mcmodel=medany
 ASFLAGS ?= -march=rv64imac_zicsr_sstc -mabi=lp64 -nostdlib -mcmodel=medany
@@ -14,7 +16,7 @@ COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I 
 
 override CFLAGS += $(COMMONINC)
 
-CSRC = kernel.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c process/process_control.c arch/riscV/systemCalls/syscall.c drivers/uart/uart.c debug/kdebug.c
+CSRC = kernel.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c libc/byteOrder.c process/process_control.c arch/riscV/systemCalls/syscall.c drivers/uart/uart.c debug/kdebug.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
 
 SSRC = libsbi/dbcn.S libsbi/le.S arch/riscV/panic.S arch/riscV/trap.S arch/riscV/kernel_init.S arch/riscV/common.S libsbi/te.S process/switch_context.S
@@ -37,7 +39,7 @@ $(OUT_ELF_DIR)/kernel.elf: $(ALLOBJ) main.lds
 	$(CC) $(CFLAGS) $(LDFLAGS) $(ALLOBJ) -o $@
 
 $(OUT_ELF_DIR)/kernel.bin: $(OUT_ELF_DIR)/kernel.elf
-	$(LD) -O binary $< $@
+	$(OBJCOPY) -O binary $< $@ 
 
 .PHONY: clean
 clean:
