@@ -10,13 +10,21 @@ kernel_init:
 	/* Загрузка стека */
 	la sp, _stack
 	mv fp, sp
-	csrw sscratch, sp 
+	csrw sscratch, sp
 
 	la gp, _data_start
+
+	addi sp, sp, -8
+	sd ra, 0(sp)
+
+	call clear_bss
 
 	/* Загрузка программного обработчика */
 	la t0, asm_trap_vector
 	csrw stvec, t0
+
+	ld ra, 0(sp)
+	addi sp, sp, 8
 
 	ret
 
@@ -31,46 +39,46 @@ init_virtual_memory:
 	ld a0, 0(sp)
 	la a1, _free_ram_start
 	la a2, _free_ram_end
-	li a3, 0x6
+	li a3, 0x6 | 0xC0
 	call id_map_page_range
 
 	ld a0, 0(sp)
 	la a1, _text_start
 	la a2, _text_end
-	li a3, 0xA
+	li a3, 0xA | 0xC0
 	call id_map_page_range
 
 	ld a0, 0(sp)
 	la a1, _rodata_start
 	la a2, _rodata_end
-	li a3, 0xA
+	li a3, 0xA | 0xC0
 	call id_map_page_range
 
 	ld a0, 0(sp)
 	la a1, _data_start
 	la a2, _data_end
-	li a3, 0x6
+	li a3, 0x6 | 0xC0
 	call id_map_page_range
 
 	ld a0, 0(sp)
 	la a1, _bss_start
 	la a2, _bss_end
-	li a3, 0x6
+	li a3, 0x6 | 0xC0
 	call id_map_page_range
 
 	ld a0, 0(sp)
 	la a1, _stack - 128 * 1024
 	la a2, _stack
-	li a3, 0x6
+	li a3, 0x6 | 0xC0
 	call id_map_page_range
 
 	ld a0, 0(sp)
 	la t0, globalDTB
 	lw a1, 0(t0)
 	lw a2, 0(t0)
-	li a3, 0x6
+	li a3, 0x6 | 0xC0
 	call map_page
-
+	
 	ld a0, 0(sp)
 	mv t0, a0
 	srli t0, t0, 12
@@ -78,8 +86,24 @@ init_virtual_memory:
 	or t0, t0, t1
 	csrw satp, t0
 	sfence.vma
-
+	fence.i
+	
 	ld ra, 8(sp)
 	addi sp, sp, 16
 
 	ret
+
+/* Зануление секции bss */
+.section .text
+.global clear_bss
+clear_bss:
+	la a0, _bss_start
+	la a1, _bss_end
+	bgeu a0, a1, .end_loop
+.loop_bss:
+	sd zero, (a0)
+	addi a0, a0, 8
+	bltu a0, a1, .loop_bss
+.end_loop:
+	ret
+

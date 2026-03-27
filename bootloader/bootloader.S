@@ -5,12 +5,13 @@ boot:
 	mv fp, sp
 
 	la gp, _bootStartData
-	
+
 	addi sp, sp, -16
 	sd a0, 8 * 0(sp)
 	sd a1, 8 * 1(sp)
 
 	/* Добавить загрузку программы из диска в память */
+	
 	ld a0, 8 * 1(sp) 
 	call init_dtb
 	beq a0, zero, wfi_loop

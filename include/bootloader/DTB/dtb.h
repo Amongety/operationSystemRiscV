@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../../kernelSpace/libsbi/dbcn.h"
+#include "../../kernelSpace/libsbi/le.h"
 #include "../../kernelSpace/libc/byteOrder.h"
 #include "../../kernelSpace/libc/string.h"
 #include "platformDevices.h"

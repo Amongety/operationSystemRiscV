@@ -6,12 +6,17 @@ void init_uart(uint64_t uartAddr, enum UARTmode mode) {
 	switch(mode) {
 		case queryMode: {
 			UARTinit->LCR |= 0x80;
-			uint16_t divisor = 592;
+		    	
+			uint32_t system_clock = 50000000;
+			uint32_t baudrate = 115200;
+   			uint16_t divisor = system_clock / (16 * baudrate);
+			
 			UARTinit->RBR_THR_DLL = (uint8_t)divisor & 0xff;
-			UARTinit->IER_DLH = (uint8_t)divisor >> 8;
+			UARTinit->IER_DLH = (uint8_t)((divisor >> 8) & 0xFF);
 			UARTinit->LCR &= (~0x80);
 			UARTinit->LCR = 0x3;
 			UARTinit->FCR_IIR = 0xc0;
+			
 			break;
 		}
 
@@ -42,16 +47,17 @@ void init_uart(uint64_t uartAddr, enum UARTmode mode) {
 void uartWrite(uint64_t uartAddr, uint8_t symbol) {
 	volatile struct UartReg *uart = (struct UartReg*)uartAddr;
 
-	if(!(uart->LCR & 0x80)) uart->RBR_THR_DLL = symbol;
+	while((((uart->LCR >> 7) & 0x1) != 0) && (!((uart->USR >> 1) & 0x1))) {}
 
-	//while(uart->USR & 0x4) {}
+	uart->RBR_THR_DLL = symbol;
+	
+	while(!((uart->USR >> 2) & 0x1)) {}
 }
 
 uint8_t uartRead(uint64_t uartAddr) {
 	volatile struct UartReg *uart = (struct UartReg*)uartAddr;
 	
-	//while(!(uart->USR & 0x8)) {}
-	while(!(uart->LSR & 0x1)) {}
+	while(!((uart->USR >> 3) & 0x1)) {}
 
 	return uart->RBR_THR_DLL;
 }

@@ -2,7 +2,7 @@
 #define __CONFIG_H__
 
 /* для console_printf */
-#define __UART_USE0__ //Для UART
+#define __UART_USE0__ //Для UART TX(8), RX(10)
 //#define __DBCN__ //Для использования SBI debug
 //#define __CN__  //Для использования SBI legacy
 

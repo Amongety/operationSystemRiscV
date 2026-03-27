@@ -8,7 +8,7 @@
 #define PROCESS_MAX 8
 
 #define STACK_ADDR 0xf0000000
-#define PROC_START_ADDR 0x20000000
+#define PROC_START_ADDR 0x80800000
 
 extern unsigned char _data_start[];
 extern unsigned char _data_end[];

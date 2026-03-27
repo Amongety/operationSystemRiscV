@@ -12,9 +12,8 @@ void main(struct dtbPlatform dtb)
 	root_page_table = (uint64_t*)alloc_pages(1);
 
 	init_virtual_memory(root_page_table);
-
+	
 	init_uart(queryMode, globalDTB.uart[0].addr);
-
 	
 	console_printf("Text %x %x\r\n", _text_start, _text_end);
 	console_printf("Rodata %x %x\r\n", _rodata_start, _rodata_end);
@@ -24,11 +23,11 @@ void main(struct dtbPlatform dtb)
 	console_printf("FreeRam %x %x\r\n", _free_ram_start, _free_ram_end);
 
 	console_printf("Hello debug SBI!\r\n");
-	
+
 	/*
-	create_process(0x20000000); // userSpace/user_test.c	 void main(void)
-	create_process(0x20000000);
-	create_process(0x20000000); 
+	create_process(0x80800000); // userSpace/user_test.c	 void main(void)
+	create_process(0x80800000);
+	create_process(0x80800000); 
 	sbi_set_timer(1);
 	*/
 

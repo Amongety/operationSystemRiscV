@@ -9,7 +9,7 @@ endif
 OBJCOPY = riscv64-unknown-elf-objcopy
 
 CFLAGS ?= -ffreestanding -nostdlib -gdwarf-4 -march=rv64imac_zicsr_sstc -mabi=lp64 -ggdb3 -mcmodel=medany
-ASFLAGS ?= -march=rv64imac_zicsr_sstc -mabi=lp64 -nostdlib -mcmodel=medany
+ASFLAGS ?= -march=rv64imac_zicsr_sstc_zifencei -mabi=lp64 -nostdlib -mcmodel=medany
 OUT_ELF_DIR ?= ../build/kernelSpace
 LDFLAGS ?= -T main.lds
 COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I ../include/kernelSpace/libsbi/ -I ../include/kernelSpace/arch/riscV/memory -I ../include/kernelSpace/libc/ -I ../include/kernelSpace/process/ -I ../include/kernelSpace/arch/riscV/systemCalls/ -I ../include/kernelSpace/drivers/ -I ../include/kernelSpace/drivers/uart -I ../include/kernelSpace/debug/

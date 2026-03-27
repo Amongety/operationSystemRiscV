@@ -1,0 +1,89 @@
+/dts-v1/;
+
+/ {
+    description = "Milk-V Duo S OS";
+    #address-cells = <1>;
+
+    images {
+        bootloader {
+            description = "bootloader";
+
+            data = /incbin/("../build/bootloader/bootloader.bin");
+
+            type = "kernel";
+            arch = "riscv";
+            os = "linux";
+            compression = "none";
+
+            load = <0x80200000>;
+            entry = <0x80200000>;
+
+            hash {
+                algo = "crc32";
+            };
+        };
+
+        fdt-sg2000_milkv_duos_musl_riscv64_sd {
+            description = "DTB Milk-V Duo S";
+
+            data = /incbin/("board.dtb");
+
+            type = "flat_dt";
+            arch = "riscv";
+            compression = "none";
+
+            hash {
+                algo = "sha256";
+            };
+        };
+
+	kernel {
+	   description = "kernel";
+
+           data = /incbin/("../build/kernelSpace/kernel.bin");
+
+           type = "kernel";
+           arch = "riscv";
+           os = "baremetal";
+           compression = "none";
+
+           load = <0x80400000>;
+           entry = <0x80400000>;
+
+           hash { 
+	      algo = "crc32";
+	   };
+	};
+
+	user {
+	   description = "user";
+
+           data = /incbin/("../build/userSpace/user.bin");
+
+           type = "application";
+           arch = "riscv";
+           os = "baremetal";
+           compression = "none";
+
+           load = <0x80800000>;
+           entry = <0x80800000>;
+
+           hash { 
+	      algo = "crc32";
+	   };
+	};
+
+       
+    };
+
+    configurations {
+        default = "config-sg2000_milkv_duos_musl_riscv64_sd";
+
+        config-sg2000_milkv_duos_musl_riscv64_sd {
+            description = "boot Milk-V Duo S";
+            kernel = "bootloader";
+            fdt = "fdt-sg2000_milkv_duos_musl_riscv64_sd";
+	    loadables = "kernel", "user";
+        };
+    };
+};

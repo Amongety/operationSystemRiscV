@@ -4,7 +4,7 @@ SECTIONS
 {
 	. = 0x80400000;
 
-	.text : {
+	.text : ALIGN(4096) {
 		_text_start = .;
 		
 		*(.text)
@@ -12,7 +12,7 @@ SECTIONS
 		_text_end = .;
 	}
 
-	.rodata : ALIGN(4) {
+	.rodata : ALIGN(4096) {
 		_rodata_start = .;
 
 		*(.rodata)
@@ -29,7 +29,7 @@ SECTIONS
 		_data_end = .;
 	}
 
-	.bss : ALIGN(4) {
+	.bss : ALIGN(4096) {
 		_bss_start = .;
 		
 		*(.sbss)
@@ -37,7 +37,7 @@ SECTIONS
 
 		_bss_end = .;
 	}
-
+	
 	. = ALIGN(16);
 	. += 128 * 1024; /* 128KB */
 	_stack = .;
@@ -45,8 +45,7 @@ SECTIONS
 	. = ALIGN(4096);
 	
 	_free_ram_start = .;
-	. += 64 * 1024 * 1024; /* 64MB */
-	_free_ram_end = .;
+	_free_ram_end = 0x80FFFFFF;
 
 	/DISCARD/ : { *(.eh_frame) }
 }

@@ -4,7 +4,7 @@
 
 kernel\_init производит базовую инициализацию стека, обработчика прерываний, драйверов
 
-Добавлена возможность в ядре переключать SBI, драйвер, находящаяся в include/kernelSpace/config.h на дебаг(debug) #define \_\_DBCN\_\_ (#undef \_\_DBCN\_\_), легаси(legacy) #define \_\_CN\_\_ (#undef \_\_CN\_\_) и UART(default) #define \_\_UART\_USE0\_\_ (#undef \_\_UART\_USE0\_\_)  в функции console\_printf
+Добавлена возможность в ядре переключать SBI, драйвер, находящаяся в include/kernelSpace/config.h на дебаг(debug) #define \_\_DBCN\_\_ (#undef \_\_DBCN\_\_), легаси(legacy) #define \_\_CN\_\_ (#undef \_\_CN\_\_) и UART(TX = 8 pin; RX = 10 pin) #define \_\_UART\_USE0\_\_ (#undef \_\_UART\_USE0\_\_)  в функции console\_printf
 
 
 **Функции SBI (libsbi/)**
@@ -93,5 +93,4 @@ TODO:
 Реализован драйвер UART, с его помощью можно читать/записывать(uartRead/uartWrite) в коносоль данные
 
 TODO:
-- Уход от SBI
-- Реализовать таймер
+- Уход от SBI (Реализовать таймер)

@@ -4,6 +4,7 @@ USERSPACE = build/userSpace/user.o
 DISK_ISO = osRiscV.iso
 DISK_IMG = osRiscV.img
 FLASH = osRiscV.bin
+SD_DEVICE = /dev/sde
 
 all: fileIso
 
@@ -28,8 +29,34 @@ fileIso: bootloader kernelSpace userSpace
 qemu:
 	qemu-system-riscv64 -machine virt -bios default -kernel build/bootloader/bootloader.elf -drive file=$(DISK_IMG),format=raw,if=none,id=hd0 -device virtio-blk-device,drive=hd0 -gdb tcp::26000 -S \
 		-monitor stdio \
-	       	-device loader,file=build/kernelSpace/kernel.bin,addr=0x80400000 \
-		-device loader,file=build/userSpace/user.bin,addr=0x20000000
+		-device loader,file=build/kernelSpace/kernel.bin,addr=0x80400000 \
+		-device loader,file=build/userSpace/user.bin,addr=0x80800000
+
+.PHONY: setupSD
+setupSD:
+	mkimage -f loadSD/boot.its loadSD/boot.sd; \
+	dd if=/dev/zero of=loadSD/osRiscVSD.img bs=1M count=128; \
+	printf "label: dos\nstart=2048,size=120M,type=0xC,bootable\n" | sudo sfdisk loadSD/osRiscVSD.img; \
+	LOOP=$$(sudo losetup --show -Pf loadSD/osRiscVSD.img); \
+	PART=$${LOOP}p1; \
+	sudo mkfs.vfat $${PART}; \
+	sync; \
+	mkdir -p loadSD/boot; \
+	sudo mount $${PART} loadSD/boot; \
+	sudo cp loadSD/fip.bin loadSD/boot/; \
+	sudo cp loadSD/boot.sd loadSD/boot/; \
+	sync; \
+	sudo umount loadSD/boot; \
+	sudo losetup -d $${LOOP}; \
+	sudo dd if=loadSD/osRiscVSD.img of=$(SD_DEVICE) bs=4M status=progress; \
+	sync; \
+	make cleanSD
+
+.PHONY: cleanSD
+cleanSD:
+	rm loadSD/boot.sd
+	rm -r loadSD/boot
+	rm loadSD/osRiscVSD.img
 
 .PHONY: clean
 clean:

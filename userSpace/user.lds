@@ -2,23 +2,23 @@ ENTRY(_start)
 
 SECTIONS
 {
-	. = 0x20000000;
+	. = 0x80800000;
 	
-	.text : {
+	.text : ALIGN(4096) {
 		*(.text)
 	}
 
-	.rodata : ALIGN(4) {
+	.rodata : ALIGN(4096) {
 		*(.rodata)
 	}
 
-	.data : ALIGN(4) {
+	.data : ALIGN(4096) {
 		_Udata = .;
 		*(.sdata)
 		*(.data)
 	}
 
-	.bss : ALIGN(4) {
+	.bss : ALIGN(4096) {
 		*(.sbss)
 		*(.bss)
 	}

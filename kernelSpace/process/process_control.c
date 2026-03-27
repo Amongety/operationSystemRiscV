@@ -1,6 +1,6 @@
 #include "../../include/kernelSpace/process/process_control.h"
 
-struct Process bufProc[PROCESS_MAX];
+struct Process bufProc[PROCESS_MAX] = {0};
 struct Process* prevProcess = NULL;
 
 struct Process* create_process(uint64_t func) {
@@ -33,25 +33,25 @@ struct Process* create_process(uint64_t func) {
 
 	uint64_t phys_addr_stack = ((uint64_t)newProc->processStack) & (~(PAGE_SIZE - 1));
 
-	id_map_page_range(newProc->root, (unsigned char*)_free_ram_start, (unsigned char*)_free_ram_end, 0x6);
-	id_map_page_range(newProc->root, (unsigned char*)_text_start, (unsigned char*)_text_end, 0xA);
-	id_map_page_range(newProc->root, (unsigned char*)_rodata_start, (unsigned char*)_rodata_end, 0xA);
-	id_map_page_range(newProc->root, (unsigned char*)_data_start, (unsigned char*)_data_end, 0x6);
-	id_map_page_range(newProc->root, (unsigned char*)_bss_start, (unsigned char*)_bss_end, 0x6);
-	id_map_page_range(newProc->root, (unsigned char*)_stack - 128 * 1024, (unsigned char*)_stack, 0x6);
-	map_page(newProc->root, (unsigned char*)globalDTB.uart[0].addr, (unsigned char*)globalDTB.uart[0].addr, 0x6);
+	id_map_page_range(newProc->root, (unsigned char*)_free_ram_start, (unsigned char*)_free_ram_end, 0x6 | 0xC0);
+	id_map_page_range(newProc->root, (unsigned char*)_text_start, (unsigned char*)_text_end, 0xA | 0xC0);
+	id_map_page_range(newProc->root, (unsigned char*)_rodata_start, (unsigned char*)_rodata_end, 0xA | 0xC0);
+	id_map_page_range(newProc->root, (unsigned char*)_data_start, (unsigned char*)_data_end, 0x6 | 0xC0);
+	id_map_page_range(newProc->root, (unsigned char*)_bss_start, (unsigned char*)_bss_end, 0x6 | 0xC0);
+	id_map_page_range(newProc->root, (unsigned char*)_stack - 128 * 1024, (unsigned char*)_stack, 0x6 | 0xC0);
+	map_page(newProc->root, (unsigned char*)globalDTB.uart[0].addr, (unsigned char*)globalDTB.uart[0].addr, 0x6 | 0xC0);
 
-	for(int i = 0; i < 17; ++i) map_page(newProc->root, (unsigned char*)(STACK_ADDR + PAGE_SIZE * i), (unsigned char*)(phys_addr_stack + PAGE_SIZE * i), 0x16);
-	map_page(newProc->root, (unsigned char*)newProc->frame->gp, (unsigned char*)newProc->processData, 0x16);			// временно
+	for(int i = 0; i < 17; ++i) map_page(newProc->root, (unsigned char*)(STACK_ADDR + PAGE_SIZE * i), (unsigned char*)(phys_addr_stack + PAGE_SIZE * i), 0x16 | 0xC0);
+	map_page(newProc->root, (unsigned char*)newProc->frame->gp, (unsigned char*)newProc->processData, 0x16 | 0xC0);			// временно
 	uint64_t alignFunc = func & (~(PAGE_SIZE - 1));
-	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR), (unsigned char*)(alignFunc), 0x1E);
-	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR + PAGE_SIZE), (unsigned char*)(alignFunc + PAGE_SIZE), 0x1E);
+	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR), (unsigned char*)(alignFunc), 0x1E | 0xC0);
+	map_page(newProc->root, (unsigned char*)(PROC_START_ADDR + PAGE_SIZE), (unsigned char*)(alignFunc + PAGE_SIZE), 0x1E | 0xC0);
 
 	return newProc;
 }
 
 void delete_process(struct Process* proc) {
-	console_printf("Curent Process deleting %d\r\n", proc->pid);
+	console_printf("Current Process deleting %d\r\n", proc->pid);
 
 	dealloc_page((unsigned char*)proc->frame, 1);
 	dealloc_page((unsigned char*)proc->processStack, 2);
