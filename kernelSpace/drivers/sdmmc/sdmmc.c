@@ -22,6 +22,8 @@ bool sdSendCMD(volatile struct SdmmcReg *sdmmc, uint32_t cmd, uint32_t argument)
 		while(GET_CMD_INHIBIT_DAT(sdmmc->PRESENT_STS)) {}
 	}
 
+	sdmmc->NORM_AND_ERR_INT_STS = sdmmc->NORM_AND_ERR_INT_STS;
+
     	sdmmc->ARGUMENT = argument;
     	sdmmc->XFER_MODE_AND_CMD = cmd;
 
