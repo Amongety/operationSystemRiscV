@@ -3,6 +3,7 @@
 
 #include "htrap.h"
 #include "../../../bootloader/DTB/platformDevices.h"
+#include "../../drivers/sdmmc/sdmmc.h"
 
 struct dtbPlatform globalDTB;
 

@@ -72,10 +72,19 @@ init_virtual_memory:
 	li a3, 0x6 | 0xC0
 	call id_map_page_range
 
+	/* UART */
 	ld a0, 0(sp)
 	la t0, globalDTB
 	lw a1, 0(t0)
 	lw a2, 0(t0)
+	li a3, 0x6 | 0xC0
+	call map_page
+
+	/* SD CARD */
+	ld a0, 0(sp)
+	la t0, globalDTB
+	lw a1, 80(t0)
+	lw a2, 80(t0)
 	li a3, 0x6 | 0xC0
 	call map_page
 	

@@ -30,6 +30,7 @@ bool init_dtb(uint8_t *dtb) {
 		case 17: {
 			uint32_t token = bswap32(*((uint32_t*)structureBlock));
 			bool uart = false;
+			bool sd = false;
 
 			while(token != FDT_END) {
 				token = bswap32(*((uint32_t*)structureBlock));
@@ -38,10 +39,11 @@ bool init_dtb(uint8_t *dtb) {
 				if(token == FDT_BEGIN_NODE) {
 					uint8_t* name = structureBlock;
 					
-					/**/
+					//
 					for(char* tst = name; *tst != '\0'; ++tst) sbi_console_putchar(*tst);
 
 					if(!strncmp(name, "uart", 4) || !strncmp(name, "serial", 6)) uart = true;
+					if(!strncmp(name, "cv-sd", 5)) sd = true;	
 
 					structureBlock += strlen(name) + 1;
 					structureBlock = (uint8_t*)(((uint64_t)structureBlock + 3) & ~3);
@@ -56,14 +58,13 @@ bool init_dtb(uint8_t *dtb) {
 					uint32_t len = bswap32(prop->len);
 
 					if(len != 0) {
-						bool add = false;
-
 						structureBlock += sizeof(struct fdt_prop);
 						uint8_t* name = structureString + nameoff;
 
 						switch(*name) {
 							case 'r': {
-								if(!strcmp(name, "reg") && uart) {
+								if(uart && !strcmp(name, "reg")) {
+									bool add = false;
 									uint64_t addr = bswap64(*((uint64_t*)structureBlock));
 									uint64_t size = bswap64(*((uint64_t*)(structureBlock + sizeof(uint64_t))));
 
@@ -80,12 +81,24 @@ bool init_dtb(uint8_t *dtb) {
 										for(int i = 0; i < 29; ++i) sbi_console_putchar("Error Uart. Max supported OS\n"[i]);
 									}
 								}
+
+								else if(sd && !strcmp(name, "reg")) {
+									uint64_t addr = bswap64(*((uint64_t*)structureBlock));
+									uint64_t size = bswap64(*((uint64_t*)(structureBlock + sizeof(uint64_t))));
+
+									dtbPlt.sd.addr = addr;
+									dtbPlt.sd.size = size;
+								}
+
+
 								break;
 							}
-						}
+
+						};
 
 						/* */
 						for(uint8_t* start = structureString + nameoff; *start != '\0'; ++start) {
+							
 							sbi_console_putchar(*start);
 						}
 						
@@ -118,6 +131,7 @@ bool init_dtb(uint8_t *dtb) {
 
 				else if(token == FDT_END_NODE) {
 					uart = false;
+					sd = false;
 				}
 			}
 			break;

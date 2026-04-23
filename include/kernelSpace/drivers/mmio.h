@@ -3,6 +3,8 @@
 
 #ifndef __ASSEMBLER__
 	#include <stdint.h>
+	#include <stdbool.h>
+	#include "../debug/kdebug.h"
 #endif
 
 #endif
