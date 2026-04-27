@@ -7,7 +7,6 @@
 
 struct dtbPlatform globalDTB;
 
-extern void kernel_init(void);
 extern void init_virtual_memory(uint64_t* root); 
 
 #endif

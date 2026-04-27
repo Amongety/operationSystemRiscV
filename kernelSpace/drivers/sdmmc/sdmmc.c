@@ -56,11 +56,12 @@ bool init_sdmmc(uint64_t addr) {
     	sdSetClock(sdmmc);
 
     	sdmmc->HOST_CTL1_PWR_BG_WUP = SD_BUS_PWR | SD_BUS_VOL_SEL(0x7);
-	for(int i = 0; i < 1000; i++) {}
+	for(int i = 0; i < 1000; ++i) {}
 
     	while(GET_CMD_INHIBIT(sdmmc->PRESENT_STS)) {}
 
     	sdSendCMD(sdmmc, CMD_IDX(0), 0);
+	for(int i = 0; i < 1000; ++i) {}
 
     	sdSendCMD(sdmmc,  RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(8), 0x1AA);
 

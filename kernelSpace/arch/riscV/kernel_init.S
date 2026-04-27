@@ -14,8 +14,9 @@ kernel_init:
 
 	la gp, _data_start
 
-	addi sp, sp, -8
+	addi sp, sp, -16
 	sd ra, 0(sp)
+	sd a0, 8(sp)
 
 	call clear_bss
 
@@ -24,8 +25,10 @@ kernel_init:
 	csrw stvec, t0
 
 	ld ra, 0(sp)
-	addi sp, sp, 8
+	ld a0, 8(sp)
+	addi sp, sp, 16
 
+	call main
 	ret
 
 /* Инициализация виртульной памяти */
@@ -101,18 +104,3 @@ init_virtual_memory:
 	addi sp, sp, 16
 
 	ret
-
-/* Зануление секции bss */
-.section .text
-.global clear_bss
-clear_bss:
-	la a0, _bss_start
-	la a1, _bss_end
-	bgeu a0, a1, .end_loop
-.loop_bss:
-	sd zero, (a0)
-	addi a0, a0, 8
-	bltu a0, a1, .loop_bss
-.end_loop:
-	ret
-

@@ -4,12 +4,9 @@
 
 void main(struct dtbPlatform dtb) 
 {
-	kernel_init();
-
 	globalDTB = dtb;
 	
-	static uint64_t* root_page_table;
-	root_page_table = (uint64_t*)alloc_pages(1);
+	uint64_t* root_page_table = (uint64_t*)alloc_pages(1);
 
 	init_virtual_memory(root_page_table);
 	
@@ -61,7 +58,7 @@ void main(struct dtbPlatform dtb)
 														, 1008);
 	writeSDMMC(globalDTB.sd.addr, NONDMA, 247810, (void*)"Hello SD CARD!?\r\n", 17);
 	writeSDMMC(globalDTB.sd.addr, NONDMA, 247811, (void*)"Hello SD CARD!?\r\n", 17);
-	static uint8_t t[1008];
+	uint8_t t[1008];
 	readSDMMC(globalDTB.sd.addr, NONDMA, 247808, (void*)t, 1008);
 	console_printf("OUT: %s\r\n", t);
 
