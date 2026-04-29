@@ -1,7 +1,8 @@
 #include "../../../include/kernelSpace/drivers/sdmmc/sdmmc.h"
 
-static uint32_t RCA = 0;
-static uint32_t ocr = 0;
+uint32_t RCA = 0;
+uint32_t ocr = 0;
+uint64_t blockCountSD = 0;
 
 void sdSetClock(volatile struct SdmmcReg* sd) {
 	sd->CLK_CTL_SWRST &= ~SD_CLK_EN;
@@ -63,7 +64,7 @@ bool init_sdmmc(uint64_t addr) {
     	sdSendCMD(sdmmc, CMD_IDX(0), 0);
 	for(int i = 0; i < 1000; ++i) {}
 
-    	sdSendCMD(sdmmc,  RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(8), 0x1AA);
+    	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(8), 0x1AA);
 
     	if((sdmmc->RESP31_0 & 0x1FF) != 0x1AA) {
         	console_printf("CMD8 FAIL: %x\r\n", sdmmc->RESP31_0);
@@ -84,8 +85,8 @@ bool init_sdmmc(uint64_t addr) {
     	RCA = (sdmmc->RESP31_0 >> 16);
 
     	sdSendCMD(sdmmc, RESP_TYPE_SEL(3) | CMD_IDX(7), RCA << 16);
-	
-	while(GET_CMD_INHIBIT_DAT(sdmmc->PRESENT_STS)) {}
+		
+		while(GET_CMD_INHIBIT_DAT(sdmmc->PRESENT_STS)) {}
 
 	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(13), RCA << 16);
 	if(((sdmmc->RESP31_0 >> 9) & 0xF) != 4) {
@@ -94,18 +95,22 @@ bool init_sdmmc(uint64_t addr) {
 	}
 	
     	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(16), 512);
-	
+
+		blockCountSD = 62333952;
+
     	return true;
 }
 
 bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void *buff, uint64_t size) {
+	if(index + size > blockCountSD) return false;
+
 	volatile struct SdmmcReg* sdmmcInit = (struct SdmmcReg*)sdmmcAddr;
 
 	switch(type) {
 		case NONDMA: {
 
 			uint32_t blocks = (size + 511) / 512;
-			uint32_t words  = size / 4;
+			uint32_t words = size / 4;
 			uint64_t pos = 0;
 			uint32_t arg = index;
 
@@ -113,7 +118,7 @@ bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void
 
 			sdmmcInit->HOST_CTL1_PWR_BG_WUP &= ~(DMA_SEL(0x3));
 			sdmmcInit->HOST_CTL1_PWR_BG_WUP |= DMA_SEL(0x1);
-			for(int i = 0; i < 1000; i++) {}
+			for(int i = 0; i < 1000; ++i) {}
 
 			sdmmcInit->BLK_SIZE_AND_CNT = 512 | (blocks << 16);
 
@@ -150,12 +155,14 @@ bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void
 }
 
 bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void *buff, uint64_t size) {
+	if(index + size > blockCountSD) return false;
+
 	volatile struct SdmmcReg* sdmmcInit = (struct SdmmcReg*)sdmmcAddr;
 
 	switch(type) {
 		case NONDMA: {
 			uint32_t blocks = (size + 511) / 512;
-			uint32_t words  = size / 4;
+			uint32_t words = size / 4;
 			uint64_t pos = 0;
 			uint32_t arg = index;
 
@@ -163,7 +170,7 @@ bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void 
 
 			sdmmcInit->HOST_CTL1_PWR_BG_WUP &= ~(DMA_SEL(0x3));
 			sdmmcInit->HOST_CTL1_PWR_BG_WUP |= DMA_SEL(0x1);
-			for(int i = 0; i < 1000; i++) {}
+			for(int i = 0; i < 1000; ++i) {}
 
 			sdmmcInit->BLK_SIZE_AND_CNT = 512 | (blocks << 16);
 
