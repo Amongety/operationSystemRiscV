@@ -17,7 +17,7 @@ void *memcpy(void *dst, const void *src, unsigned long n) {
     return dst;
 }
 
-uint64_t strlen (const char *str) {
+uint64_t strlen(const char *str) {
     if (str == NULL) return 0;
 
     const char *p = str;
@@ -45,3 +45,12 @@ int strncmp(const char *s1, const char *s2, uint64_t n) {
 	return *s1 - *s2;
 }
 
+char *strchr(const char *s, int c) {
+    while(*s) {
+        if(*s == (char)c) return ((char *)s);
+        s++;
+    }
+    if((char)c == '\0') return ((char *)s);
+    
+    return (NULL);
+}

@@ -1,6 +1,7 @@
 #include "../include/kernelSpace/config.h"
 #include "../include/kernelSpace/arch/riscV/kernel_init.h"
 #include "../include/kernelSpace/libsbi/te.h"
+#include "../include/kernelSpace/filesystem/fs.h"
 
 void main(struct dtbPlatform dtb) 
 {
@@ -25,7 +26,12 @@ void main(struct dtbPlatform dtb)
 	console_printf("UART. Addr: %x. Size: %x\r\n", globalDTB.uart[0].addr, globalDTB.uart[0].size);
 	console_printf("SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
 
-	writeSDMMC(globalDTB.sd.addr, NONDMA, 247808, (void*)"PERSONS REPRESENTED\r\n"\
+	fsInitMinix3();
+	openMinix3("/");
+
+	// for(int i = 1; i < 512; ++i) getInodeMinix3(i);
+
+	/*writeSDMMC(globalDTB.sd.addr, NONDMA, 247808, (void*)"PERSONS REPRESENTED\r\n"\
 														"Escalus, Prince of Verona.\r\n"\
 														"Paris, a young Nobleman, kinsman to the Prince.\r\n"\
 														"Montague,}Heads of two Houses at variance with each other.\r\n"\
@@ -61,7 +67,7 @@ void main(struct dtbPlatform dtb)
 	writeSDMMC(globalDTB.sd.addr, NONDMA, 62333951, (void*)"Hello SD CARD!?\r\n", 17);
 	uint8_t t[1008];
 	readSDMMC(globalDTB.sd.addr, NONDMA, 247808, (void*)t, 1008);
-	console_printf("OUT: %s\r\n", t);
+	console_printf("OUT: %s\r\n", t);*/
 
 	/*
 	create_process(0x80800000); // userSpace/user_test.c	 void main(void)
@@ -69,6 +75,8 @@ void main(struct dtbPlatform dtb)
 	create_process(0x80800000); 
 	sbi_set_timer(1);
 	*/
+
+	console_printf("DONE INIT KERNEL\r\n");
 
 	while(1) {
 		asm("wfi");

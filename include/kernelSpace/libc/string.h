@@ -9,5 +9,6 @@ void *memcpy(void *dst, const void *src, unsigned long n);
 uint64_t strlen (const char *str);
 int strcmp(const char* string1, const char* string2); 
 int strncmp(const char *s1, const char *s2, uint64_t n);
+char *strchr(const char *s, int c);
 
 #endif

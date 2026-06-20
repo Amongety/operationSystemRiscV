@@ -54,26 +54,6 @@
 	      algo = "crc32";
 	   };
 	};
-
-	user {
-	   description = "user";
-
-           data = /incbin/("../build/userSpace/user.bin");
-
-           type = "application";
-           arch = "riscv";
-           os = "baremetal";
-           compression = "none";
-
-           load = <0x80800000>;
-           entry = <0x80800000>;
-
-           hash { 
-	      algo = "crc32";
-	   };
-	};
-
-       
     };
 
     configurations {
@@ -83,7 +63,7 @@
             description = "boot Milk-V Duo S";
             kernel = "bootloader";
             fdt = "fdt-sg2000_milkv_duos_musl_riscv64_sd";
-	    loadables = "kernel", "user";
+	    loadables = "kernel"; //, "user";
         };
     };
 };

@@ -35,14 +35,23 @@ qemu:
 .PHONY: setupSD
 setupSD:
 	mkimage -f loadSD/boot.its loadSD/boot.sd; \
-	dd if=/dev/zero of=loadSD/osRiscVSD.img bs=1M count=128; \
-	printf "label: dos\nstart=2048,size=120M,type=0xC,bootable\n" | sudo sfdisk loadSD/osRiscVSD.img; \
+	dd if=/dev/zero of=loadSD/osRiscVSD.img bs=1M count=256; \
+	BOOT_SD_SIZE=$$(stat -c%s loadSD/boot.sd); \
+	FIP_SIZE=$$(stat -c%s loadSD/fip.bin); \
+	BOOT_SIZE=$$((BOOT_SD_SIZE + FIP_SIZE + 8 * 1024 * 1024)); \
+	ALIGN=$$((4 * 1024 * 1024)); \
+	BOOT_SIZE=$$(((BOOT_SIZE + ALIGN - 1) / ALIGN * ALIGN)); \
+	BOOT_SIZE_MB=$$((BOOT_SIZE / 1024 / 1024)); \
+	START_P2=$$((2048 + BOOT_SIZE_MB * 2048)); \
+	printf "label: dos\nstart=2048,size=%dM,type=0xC,bootable\n start=%d, type=0x83\n" $$BOOT_SIZE_MB $$START_P2 | sudo sfdisk loadSD/osRiscVSD.img; \
 	LOOP=$$(sudo losetup --show -Pf loadSD/osRiscVSD.img); \
-	PART=$${LOOP}p1; \
-	sudo mkfs.vfat $${PART}; \
+	P1=$${LOOP}p1; \
+	P2=$${LOOP}p2; \
+	sudo mkfs.vfat $${P1}; \
+	sudo mkfs.minix -3 $${P2}; \
 	sync; \
 	mkdir -p loadSD/boot; \
-	sudo mount $${PART} loadSD/boot; \
+	sudo mount $${P1} loadSD/boot; \
 	sudo cp loadSD/fip.bin loadSD/boot/; \
 	sudo cp loadSD/boot.sd loadSD/boot/; \
 	sync; \
@@ -54,9 +63,9 @@ setupSD:
 
 .PHONY: cleanSD
 cleanSD:
-	rm loadSD/boot.sd
-	rm -r loadSD/boot
-	rm loadSD/osRiscVSD.img
+	sudo rm loadSD/boot.sd
+	sudo rm -r loadSD/boot
+	sudo rm loadSD/osRiscVSD.img
 
 .PHONY: clean
 clean:
