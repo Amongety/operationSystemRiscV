@@ -27,7 +27,7 @@ void main(struct dtbPlatform dtb)
 	console_printf("SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
 
 	fsInitMinix3();
-	openMinix3("/");
+	console_printf("Sector number = %d\r\n", openMinix3("/"));
 
 	// for(int i = 1; i < 512; ++i) getInodeMinix3(i);
 
@@ -67,7 +67,11 @@ void main(struct dtbPlatform dtb)
 	writeSDMMC(globalDTB.sd.addr, NONDMA, 62333951, (void*)"Hello SD CARD!?\r\n", 17);
 	uint8_t t[1008];
 	readSDMMC(globalDTB.sd.addr, NONDMA, 247808, (void*)t, 1008);
-	console_printf("OUT: %s\r\n", t);*/
+	console_printf("OUT1: %s\r\n", t);
+	for(int i = 0; i < 1008; ++i) t[i] = 0;
+	readSDMMC(globalDTB.sd.addr, NONDMA, 247810, (void*)t, 17);
+	console_printf("OUT2: %s\r\n", t);*/
+
 
 	/*
 	create_process(0x80800000); // userSpace/user_test.c	 void main(void)

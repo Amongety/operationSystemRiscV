@@ -332,11 +332,11 @@ struct SdmmcReg {
 #define ADJ_NCR(x)									((x) << 8)
 #define ADJ_NCRC(x)									((x) << 10)
 
-void sdSetClock(volatile struct SdmmcReg* sd);
+void sdSetClock(volatile struct SdmmcReg* sd, uint32_t div);
 bool sdSendCMD(volatile struct SdmmcReg *sdmmc, uint32_t cmd, uint32_t argument);
 bool init_sdmmc(uint64_t addr);
 bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void *buff, uint64_t size);
 bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void *buff, uint64_t size);
-bool errSDMMC(volatile struct SdmmcReg *sdmmcInit, const char* typeFail);
+bool errSDMMC(volatile struct SdmmcReg *sdmmcInit, const char* typeFail, uint32_t cmd);
 
 #endif

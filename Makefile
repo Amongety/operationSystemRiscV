@@ -6,6 +6,10 @@ DISK_IMG = osRiscV.img
 FLASH = osRiscV.bin
 SD_DEVICE = /dev/sde
 
+PREFIX_DPK := /opt/riscv
+SRC_DPK := riscv-gnu-toolchain
+PATHLINE_DPK := export PATH=$(PREFIX)/bin:$$PATH
+
 all: fileIso
 
 .PHONY: fileIso bootloader kernelSpace userSpace
@@ -73,3 +77,22 @@ clean:
 	make -C kernelSpace clean
 	make -C userSpace clean
 	rm $(DISK_IMG)
+
+.PHONY: dpk
+dpk:
+	sudo apt-get update
+	sudo apt-get install -y autoconf automake autotools-dev curl python3 \
+		python3-pip libmpc-dev libmpfr-dev libgmp-dev gawk build-essential \
+		bison flex texinfo gperf libtool patchutils bc zlib1g-dev \
+		libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev
+ 
+	sudo mkdir -p $(PREFIX_DPK)
+	sudo chown $$USER:$$USER $(PREFIX_DPK)
+ 
+	test -d $(SRC_DPK) || git clone https://github.com/riscv-collab/riscv-gnu-toolchain $(SRC_DPK)
+ 
+	cd $(SRC_DPK) && ./configure --prefix=$(PREFIX_DPK) --enable-multilib
+ 
+	$(MAKE) -C $(SRC_DPK) -j$$(nproc)
+
+	grep -qxF '$(PATHLINE_DPK)' $(HOME)/.bashrc || echo '$(PATHLINE_DPK)' >> $(HOME)/.bashrc

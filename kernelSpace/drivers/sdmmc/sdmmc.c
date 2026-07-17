@@ -1,19 +1,23 @@
 #include "../../../include/kernelSpace/drivers/sdmmc/sdmmc.h"
 
-uint32_t RCA = 0;
-uint32_t ocr = 0;
+static uint32_t RCA = 0;
+static uint32_t ocr = 0;
 uint64_t blockCountSD = 0;
+static uint32_t sdVer = 0;
 
-void sdSetClock(volatile struct SdmmcReg* sd) {
+void sdSetClock(volatile struct SdmmcReg* sd, uint32_t div) {
 	sd->CLK_CTL_SWRST &= ~SD_CLK_EN;
 
-    	sd->CLK_CTL_SWRST |= INT_CLK_EN;
-    	while(!(GET_INT_CLK_STABLE(sd->CLK_CTL_SWRST))) {}
+    sd->CLK_CTL_SWRST |= INT_CLK_EN;
+    while(!(GET_INT_CLK_STABLE(sd->CLK_CTL_SWRST))) {}
 
-    	sd->CLK_CTL_SWRST &= ~FREQ_SEL(0xFF);
-    	sd->CLK_CTL_SWRST |= FREQ_SEL(0x80);
+    sd->CLK_CTL_SWRST &= ~FREQ_SEL(0xFF);
+    sd->CLK_CTL_SWRST |= FREQ_SEL(div);
 
-    	sd->CLK_CTL_SWRST |= SD_CLK_EN;
+	sd->CLK_CTL_SWRST &= ~TOUT_CNT(0xF);
+	sd->CLK_CTL_SWRST |= TOUT_CNT(0xE);
+
+    sd->CLK_CTL_SWRST |= SD_CLK_EN;
 }
 
 bool sdSendCMD(volatile struct SdmmcReg *sdmmc, uint32_t cmd, uint32_t argument) {
@@ -25,28 +29,17 @@ bool sdSendCMD(volatile struct SdmmcReg *sdmmc, uint32_t cmd, uint32_t argument)
 
 	sdmmc->NORM_AND_ERR_INT_STS = sdmmc->NORM_AND_ERR_INT_STS;
 
-    	sdmmc->ARGUMENT = argument;
-    	sdmmc->XFER_MODE_AND_CMD = cmd;
+    sdmmc->ARGUMENT = argument;
+    sdmmc->XFER_MODE_AND_CMD = cmd;
 
 	for(int i = 0; i < TIME_WAIT; ++i) {
-		if(errSDMMC(sdmmc, "CMD error")) return false;
+		if(errSDMMC(sdmmc, "CMD error", cmd)) return false;
 
-       		if(sdmmc->NORM_AND_ERR_INT_STS & CMD_CMPL) {
+       	if(sdmmc->NORM_AND_ERR_INT_STS & CMD_CMPL) {
 			sdmmc->NORM_AND_ERR_INT_STS = CMD_CMPL;
 			break;
 		}
-    	}
-
-	if((GET_CMD_IDX(cmd) != 25) && (cmd & DATA_PRESENT_SEL)) {
-		for(int i = 0; i < TIME_WAIT; ++i) {
-			if(errSDMMC(sdmmc, "DATA error")) return false;
-
-            		if(sdmmc->NORM_AND_ERR_INT_STS & XFER_CMPL) {
-                		sdmmc->NORM_AND_ERR_INT_STS = XFER_CMPL;
-                		break;
-            		}
-		}
-	}
+    }
 
 	return true;
 }
@@ -54,55 +47,83 @@ bool sdSendCMD(volatile struct SdmmcReg *sdmmc, uint32_t cmd, uint32_t argument)
 bool init_sdmmc(uint64_t addr) {
 	volatile struct SdmmcReg* sdmmc = (struct SdmmcReg*)addr;
 
-    	sdSetClock(sdmmc);
-
-    	sdmmc->HOST_CTL1_PWR_BG_WUP = SD_BUS_PWR | SD_BUS_VOL_SEL(0x7);
+    sdSetClock(sdmmc, 0x80);
 	for(int i = 0; i < 1000; ++i) {}
 
-    	while(GET_CMD_INHIBIT(sdmmc->PRESENT_STS)) {}
-
-    	sdSendCMD(sdmmc, CMD_IDX(0), 0);
+    sdmmc->HOST_CTL1_PWR_BG_WUP = SD_BUS_PWR | SD_BUS_VOL_SEL(0x7);
 	for(int i = 0; i < 1000; ++i) {}
 
-    	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(8), 0x1AA);
+    while(GET_CMD_INHIBIT(sdmmc->PRESENT_STS)) {}
 
-    	if((sdmmc->RESP31_0 & 0x1FF) != 0x1AA) {
-        	console_printf("CMD8 FAIL: %x\r\n", sdmmc->RESP31_0);
-        	return false;
-    	}
+    sdSendCMD(sdmmc, CMD_IDX(0), 0);
+	for(int i = 0; i < 1000; ++i) {}
 
-    	do {
-        	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(55), 0);
-        	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_IDX(41), 0x40300000);
-    	} while(!(sdmmc->RESP31_0 & (1U << 31)));
+    sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(8), 0x1AA);
 
-    	ocr = sdmmc->RESP31_0;
+    if((sdmmc->RESP31_0 & 0x1FF) != 0x1AA) {
+        console_printf("CMD8 FAIL: %x\r\n", sdmmc->RESP31_0);
+        return false;
+    }
 
-    	sdSendCMD(sdmmc, RESP_TYPE_SEL(1) | CMD_IDX(2), 0);
+    do {
+        sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(55), 0);
+        sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_IDX(41), 0x40300000);
+    } while(!(sdmmc->RESP31_0 & (1U << 31)));
 
-    	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(3), 0);
+    ocr = sdmmc->RESP31_0;
 
-    	RCA = (sdmmc->RESP31_0 >> 16);
+    sdSendCMD(sdmmc, RESP_TYPE_SEL(1) | CMD_IDX(2), 0);
 
-    	sdSendCMD(sdmmc, RESP_TYPE_SEL(3) | CMD_IDX(7), RCA << 16);
+    sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(3), 0);
+
+    RCA = (sdmmc->RESP31_0 >> 16);
+
+	sdSendCMD(sdmmc, RESP_TYPE_SEL(1) | CMD_CRC_CHK_ENABLE | CMD_IDX(9), RCA << 16);
+
+	sdVer = (sdmmc->RESP127_96 >> 22) & 0x3;
+
+	if(sdVer == 1) {
+		uint32_t cSize = (sdmmc->RESP63_32 >> 8) & 0x3FFFFF;
+		blockCountSD = ((uint64_t)cSize + 1) << 10;
+	}
+	else {
+		uint32_t readBlLen = (sdmmc->RESP95_64 >> 8) & 0xF;
+		uint32_t cSize = ((sdmmc->RESP95_64 & 0x3) << 10) | (sdmmc->RESP63_32 >> 22);
+		uint32_t cMult = ((sdmmc->RESP63_32 & 0x3) << 1) | (sdmmc->RESP31_0 >> 31);
+	
+		uint64_t bytes = ((uint64_t)cSize + 1) << (cMult + 2 + readBlLen);
+		blockCountSD = bytes / 512;
+	}
+
+    sdSendCMD(sdmmc, RESP_TYPE_SEL(3) | CMD_IDX(7), RCA << 16);
 		
-		while(GET_CMD_INHIBIT_DAT(sdmmc->PRESENT_STS)) {}
+	while(GET_CMD_INHIBIT_DAT(sdmmc->PRESENT_STS)) {}
 
 	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(13), RCA << 16);
 	if(((sdmmc->RESP31_0 >> 9) & 0xF) != 4) {
 		console_printf("CMD13 fail:\r\nCMD13 RESP = %x\r\nSTATE = %d\r\n", sdmmc->RESP31_0, (sdmmc->RESP31_0 >> 9) & 0xF);
 		return false;
 	}
+
+	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(55), RCA << 16);
+	if(!sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(6), 0x2)) {
+		console_printf("ACMD6 FAIL 1 bit\r\n");
+	}
+	else {
+		sdmmc->HOST_CTL1_PWR_BG_WUP |= DAT_XFER_WIDTH;
+	}
+
+	sdSetClock(sdmmc, 0x08);
+	for(int i = 0; i < 1000; ++i) {}
 	
-    	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(16), 512);
+    sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(16), 512);
 
-		blockCountSD = 62333952;
-
-    	return true;
+    return true;
 }
 
 bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void *buff, uint64_t size) {
-	if(index + size > blockCountSD) return false;
+	uint32_t blocks = (size + 511) / 512;
+	if(index + blocks > blockCountSD) return false;
 
 	volatile struct SdmmcReg* sdmmcInit = (struct SdmmcReg*)sdmmcAddr;
 
@@ -122,12 +143,12 @@ bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void
 
 			sdmmcInit->BLK_SIZE_AND_CNT = 512 | (blocks << 16);
 
-			sdSendCMD(sdmmcInit, BLK_CNT_ENABLE | MULTI_BLK_SEL | RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | DATA_PRESENT_SEL | CMD_IDX(25), arg);
+			if(!sdSendCMD(sdmmcInit, BLK_CNT_ENABLE | MULTI_BLK_SEL | RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | DATA_PRESENT_SEL | CMD_IDX(25), arg)) return false;
 
 			uint32_t *data = (uint32_t*)buff;
 
 			for(int b = 0; b < blocks; ++b) {
-				if(errSDMMC(sdmmcInit, "Error transfer data")) return false;
+				if(errSDMMC(sdmmcInit, "Error transfer data", CMD_IDX(25))) return false;
 				
 				while(!(sdmmcInit->NORM_AND_ERR_INT_STS & BUF_WRDY)) {}
 				sdmmcInit->NORM_AND_ERR_INT_STS = BUF_WRDY;
@@ -139,8 +160,7 @@ bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void
 
 			while((GET_DAT_LINE_ACTIVE(sdmmcInit->PRESENT_STS))) {}
 
-			sdSendCMD(sdmmcInit, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(12), 0);
-
+			sdSendCMD(sdmmcInit, RESP_TYPE_SEL(0x3) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(12), 0);
 			while(GET_CMD_INHIBIT_DAT(sdmmcInit->PRESENT_STS)) {}
 
 			break;
@@ -155,7 +175,8 @@ bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void
 }
 
 bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void *buff, uint64_t size) {
-	if(index + size > blockCountSD) return false;
+	uint32_t blocks = (size + 511) / 512;
+	if(index + blocks > blockCountSD) return false;
 
 	volatile struct SdmmcReg* sdmmcInit = (struct SdmmcReg*)sdmmcAddr;
 
@@ -179,7 +200,7 @@ bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void 
 			uint32_t *data = (uint32_t*)buff;
 
 			for(int b = 0; b < blocks; ++b) {
-				if(errSDMMC(sdmmcInit, "Error read data")) return false;
+				if(errSDMMC(sdmmcInit, "Error read data", CMD_IDX(18))) return false;
 
 				while(!(sdmmcInit->NORM_AND_ERR_INT_STS & BUF_RRDY)) {}
 				sdmmcInit->NORM_AND_ERR_INT_STS = BUF_RRDY;
@@ -192,7 +213,7 @@ bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void 
 			
 			while((GET_DAT_LINE_ACTIVE(sdmmcInit->PRESENT_STS))) {}
 
-			sdSendCMD(sdmmcInit, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(12), 0);
+			sdSendCMD(sdmmcInit, RESP_TYPE_SEL(0x3) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(12), 0);
 			
 			while(GET_CMD_INHIBIT_DAT(sdmmcInit->PRESENT_STS)) {}
 
@@ -207,9 +228,9 @@ bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void 
 	return true;
 }
 
-bool errSDMMC(volatile struct SdmmcReg* sdmmcInit, const char* typeFail) {
+bool errSDMMC(volatile struct SdmmcReg* sdmmcInit, const char* typeFail, uint32_t cmd) {
 	if(sdmmcInit->NORM_AND_ERR_INT_STS & ERR_INT_STS_ERR_MASK) {
-		console_printf("Error SD_CARD: \'%s\'\r\n", typeFail);
+		console_printf("Error SD_CARD: \'%s\' CMD/ACMD = %d\r\n", typeFail, GET_CMD_IDX(cmd));
 		console_printf("RESPONSE:\r\nRESP31_0:%x\r\nRESP63_32:%x\r\nRESP95_64:%x\r\nRESP127_96:%x\r\n", sdmmcInit->RESP31_0, sdmmcInit->RESP63_32, sdmmcInit->RESP95_64, sdmmcInit->RESP127_96);
 		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_TOUT_ERR) console_printf("CMD Timeout Error\r\n");
 		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_CRC_ERR) console_printf("CMD CRC Error\r\n");
@@ -223,6 +244,11 @@ bool errSDMMC(volatile struct SdmmcReg* sdmmcInit, const char* typeFail) {
 		if(sdmmcInit->NORM_AND_ERR_INT_STS & ADMA_ERR) console_printf("ADMA Error\r\n");
 		if(sdmmcInit->NORM_AND_ERR_INT_STS & TUNE_ERR) console_printf("Tuning Error\r\n");
 		if(sdmmcInit->NORM_AND_ERR_INT_STS & BOOT_ACK_ERR) console_printf("Boot Ack Error\r\n");
+		
+		sdmmcInit->NORM_AND_ERR_INT_STS = sdmmcInit->NORM_AND_ERR_INT_STS;
+		sdmmcInit->CLK_CTL_SWRST |= (1U << 25) | (1U << 26);
+		while(sdmmcInit->CLK_CTL_SWRST & ((1U << 25) | (1U << 26))) {}
+		
 		return true;
 	}
 
