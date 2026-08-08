@@ -3,9 +3,9 @@
 #include "../include/kernelSpace/libsbi/te.h"
 #include "../include/kernelSpace/filesystem/fs.h"
 
-void main(struct dtbPlatform dtb) 
+void main(struct DtbPlatform DTB) 
 {
-	globalDTB = dtb;
+	globalDTB = DTB;
 	
 	uint64_t* root_page_table = (uint64_t*)alloc_pages(1);
 
@@ -13,6 +13,8 @@ void main(struct dtbPlatform dtb)
 	
 	init_uart(queryMode, globalDTB.uart[0].addr);
 	if(!init_sdmmc(globalDTB.sd.addr)) PANIC("Error init SD-CARD");	
+	
+	fsInitMinix3();
 
 	console_printf("Text %x %x\r\n", _text_start, _text_end);
 	console_printf("Rodata %x %x\r\n", _rodata_start, _rodata_end);
@@ -26,52 +28,24 @@ void main(struct dtbPlatform dtb)
 	console_printf("UART. Addr: %x. Size: %x\r\n", globalDTB.uart[0].addr, globalDTB.uart[0].size);
 	console_printf("SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
 
-	fsInitMinix3();
-	console_printf("Sector number = %d\r\n", openMinix3("/"));
+	long fd = mkdirMinix3("/trt", 0755);
+	long fd2 = openMinix3("/trt/testFile", 0755);
+	console_printf("Directory = %d\r\n", fd);
+	console_printf("File = %d\r\n", fd2);
 
-	// for(int i = 1; i < 512; ++i) getInodeMinix3(i);
+	uint8_t bufTest[1035];
 
-	/*writeSDMMC(globalDTB.sd.addr, NONDMA, 247808, (void*)"PERSONS REPRESENTED\r\n"\
-														"Escalus, Prince of Verona.\r\n"\
-														"Paris, a young Nobleman, kinsman to the Prince.\r\n"\
-														"Montague,}Heads of two Houses at variance with each other.\r\n"\
-														"Capulet, }\r\n"\
-														"An Old Man, Uncle to Capulet.\r\n"\
-														"Romeo, Son to Montague.\r\n"\
-														"Mercutio, Kinsman to the Prince, and Friend to Romeo.\r\n"\
-														"Benvolio, Nephew to Montague, and Friend to Romeo.\r\n"\
-														"Tybalt, Nephew to Lady Capulet.\r\n"\
-														"Friar Lawrence, a Franciscan.\r\n"\
-														"Friar John, of the same Order.\r\n"\
-														"Balthasar, Servant to Romeo.\r\n"\
-														"Sampson, Servant to Capulet.\r\n"\
-														"Gregory, Servant to Capulet.\r\n"\
-														"Peter, Servant to Juliet's Nurse.\r\n"\
-														"Abraham, Servant to Montague.\r\n"\
-														"An Apothecary.\r\n"\
-														"Three Musicians.\r\n"\
-														"Chorus.\r\n"\
-														"Page to Paris; another Page.\r\n"\
-														"An Officer.\r\n"\
-														"Lady Montague, Wife to Montague.\r\n"\
-														"Lady Capulet, Wife to Capulet.\r\n"\
-														"Juliet, Daughter to Capulet.\r\n"\
-														"Nurse to Juliet.\r\n"\
-														"Citizens of Verona; several Men and Women, relations to both\r\n"\
-														"houses; Maskers, Guards, Watchmen, and Attendants.\r\n"\
-														"SCENE. — During the greater part of the Play in Verona; once, in the Fifth Act, at Mantua.\r\n"\
-														"THE PROLOGUE\r\n"\
-														, 1008);
-	writeSDMMC(globalDTB.sd.addr, NONDMA, 247810, (void*)"Hello SD CARD!?\r\n", 17);
-	writeSDMMC(globalDTB.sd.addr, NONDMA, 247811, (void*)"Hello SD CARD!?\r\n", 17);
-	writeSDMMC(globalDTB.sd.addr, NONDMA, 62333951, (void*)"Hello SD CARD!?\r\n", 17);
-	uint8_t t[1008];
-	readSDMMC(globalDTB.sd.addr, NONDMA, 247808, (void*)t, 1008);
-	console_printf("OUT1: %s\r\n", t);
-	for(int i = 0; i < 1008; ++i) t[i] = 0;
-	readSDMMC(globalDTB.sd.addr, NONDMA, 247810, (void*)t, 17);
-	console_printf("OUT2: %s\r\n", t);*/
+	console_printf("Count write = %d\r\n", writeInodeMinix3(fd2, (uint8_t*)"XYZZY123", 8, 0));
+	console_printf("Count read = %d\r\n", readInodeMinix3(fd2, bufTest, 8, 0));
 
+	for(int i = 0; i < 8; ++i) {
+		if(bufTest[i] == '\n') console_printf("\r");
+		console_printf("%c", bufTest[i]);
+	}
+	console_printf("\r\n");
+
+	unlinkMinix3("/trt/testFile");
+	rmdirMinix3("/trt");
 
 	/*
 	create_process(0x80800000); // userSpace/user_test.c	 void main(void)
@@ -80,10 +54,43 @@ void main(struct dtbPlatform dtb)
 	sbi_set_timer(1);
 	*/
 
-	console_printf("DONE INIT KERNEL\r\n");
+	console_printf("\r\nDONE INIT KERNEL\r\n");
 
 	while(1) {
 		asm("wfi");
 	}
 }
 
+/*
+PERSONS REPRESENTED
+Escalus, Prince of Verona.
+Paris, a young Nobleman, kinsman to the Prince.
+Montague,}Heads of two Houses at variance with each other.
+Capulet, }
+An Old Man, Uncle to Capulet.
+Romeo, Son to Montague.
+Mercutio, Kinsman to the Prince, and Friend to Romeo.
+Benvolio, Nephew to Montague, and Friend to Romeo.
+Tybalt, Nephew to Lady Capulet.
+Friar Lawrence, a Franciscan.
+Friar John, of the same Order.
+Balthasar, Servant to Romeo.
+Sampson, Servant to Capulet.
+Gregory, Servant to Capulet.
+Peter, Servant to Juliet's Nurse.
+Abraham, Servant to Montague.
+An Apothecary.
+Three Musicians.
+Chorus.
+Page to Paris; another Page.
+An Officer.
+Lady Montague, Wife to Montague.
+Lady Capulet, Wife to Capulet.
+Juliet, Daughter to Capulet.
+Nurse to Juliet.
+Citizens of Verona; several Men and Women, relations to both
+houses; Maskers, Guards, Watchmen, and Attendants.
+SCENE. — During the greater part of the Play in Verona; once, in the Fifth Act, at Mantua.
+THE PROLOGUE
+
+*/
