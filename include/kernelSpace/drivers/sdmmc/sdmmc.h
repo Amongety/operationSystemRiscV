@@ -332,6 +332,8 @@ struct SdmmcReg {
 #define ADJ_NCR(x)									((x) << 8)
 #define ADJ_NCRC(x)									((x) << 10)
 
+#define BLOCK_BYTE 512
+
 void sdSetClock(volatile struct SdmmcReg* sd, uint32_t div);
 bool sdSendCMD(volatile struct SdmmcReg *sdmmc, uint32_t cmd, uint32_t argument);
 bool init_sdmmc(uint64_t addr);

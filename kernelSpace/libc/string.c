@@ -54,3 +54,23 @@ char *strchr(const char *s, int c) {
     
     return (NULL);
 }
+
+char* strcpy(char* dest, const char* src) {
+   char* d = dest;
+   while((*d++ = *src++) != '\0');
+   return dest;
+}
+
+char* strrchr(const char* s, int c) {
+   const char* last = NULL;
+   char ch = (char)c;
+
+   while(*s) {
+       if(*s == ch) last = s;
+       ++s;
+   }
+
+   if(ch == '\0') return (char*)s;
+
+   return (char*)last;
+}

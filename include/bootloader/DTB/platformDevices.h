@@ -13,11 +13,11 @@ struct SdCard {
 	uint64_t size;
 };
 
-struct dtbPlatform {
+struct DtbPlatform {
 	struct Uart uart[UART_MAX];
 	struct SdCard sd;
 };
 
-extern struct dtbPlatform dtbPlt;
+extern struct DtbPlatform dtbPlt;
 
 #endif

@@ -1,6 +1,6 @@
 #include "../../../../include/kernelSpace/arch/riscV/systemCalls/syscall.h"
 
-uint64_t do_syscall(struct trap_frame* tf) {
+uint64_t do_syscall(struct TrapFrame* tf) {
 	switch(tf->a7) {
 		case SYSCALL_EXIT:
 			do_exit();

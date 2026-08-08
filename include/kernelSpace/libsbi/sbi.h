@@ -3,7 +3,7 @@
 
 #include "../config.h"
 
-struct sbiret {
+struct SbiRet {
 	long error;
 	union {
 		long value;
@@ -12,7 +12,7 @@ struct sbiret {
 };
 
 #ifdef __DBCN__
-	typedef struct sbiret console_ret_t;
+	typedef struct SbiRet console_ret_t;
 #else
 	typedef int console_ret_t;
 #endif

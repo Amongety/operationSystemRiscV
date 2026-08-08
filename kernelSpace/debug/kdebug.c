@@ -18,7 +18,7 @@ console_ret_t console_printf(const unsigned char* format, ...) {
             switch(*format) {
                 case 'd':
                     {
-                        uint64_t value = va_arg(args, uint64_t);
+                        long long value = va_arg(args, long long);
                         if(value < 0) {
 			    #if defined(__UART_USE0__)
 				uartWrite(globalDTB.uart[0].addr, '-');	

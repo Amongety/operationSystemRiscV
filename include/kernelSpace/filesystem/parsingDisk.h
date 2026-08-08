@@ -3,7 +3,7 @@
 
 #include "../drivers/sdmmc/sdmmc.h"
 
-extern struct dtbPlatform globalDTB;
+extern struct DtbPlatform globalDTB;
 
 struct MBRPartition {
 	uint32_t status:8;

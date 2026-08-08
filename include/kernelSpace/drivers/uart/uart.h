@@ -4,9 +4,9 @@
 #include "../mmio.h"
 #include "../../../bootloader/DTB/platformDevices.h"
 
-extern struct dtbPlatform globalDTB;
+extern struct DtbPlatform globalDTB;
 
-enum UARTmode{
+enum UARTmode {
 	queryMode = 0,
 	interruptMode,
 	DMAMode

@@ -1,6 +1,6 @@
 #include "../../../include/kernelSpace/arch/riscV/htrap.h"
 
-uint64_t handler_trap(struct trap_frame *tf) {
+uint64_t handler_trap(struct TrapFrame *tf) {
 	uint64_t next_epc = tf->csr_reg.epc;
 
 	if(tf->csr_reg.cause.interrupt == 1) {

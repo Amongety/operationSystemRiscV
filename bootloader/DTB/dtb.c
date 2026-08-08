@@ -4,7 +4,7 @@ void pchis(uint64_t);
 void phex(uint64_t);
 
 bool init_dtb(uint8_t *dtb) {
-	struct fdt_header* dtbHeader = (struct fdt_header*)dtb;
+	struct FdtHeader* dtbHeader = (struct FdtHeader*)dtb;
 
 	if(bswap32(dtbHeader->magic) != 0xd00dfeed) {
 		for(int i = 0; i < 23; ++ i) sbi_console_putchar("Error magic header DTB\n"[i]);
@@ -24,7 +24,7 @@ bool init_dtb(uint8_t *dtb) {
 	uint32_t offMMIO = bswap32(dtbHeader->off_mem_rsvmap);
 	uint8_t *structureMMIO = dtb + offMMIO;
 
-	memset((void*)&dtbPlt, 0, sizeof(struct dtbPlatform));
+	memset((void*)&dtbPlt, 0, sizeof(struct DtbPlatform));
 
 	switch(version) {
 		case 17: {
@@ -53,12 +53,12 @@ bool init_dtb(uint8_t *dtb) {
 				}
 
 				else if(token == FDT_PROP) {
-					struct fdt_prop* prop = (struct fdt_prop*)structureBlock;
+					struct FdtProp* prop = (struct FdtProp*)structureBlock;
 					uint32_t nameoff = bswap32(prop->nameoff);
 					uint32_t len = bswap32(prop->len);
 
 					if(len != 0) {
-						structureBlock += sizeof(struct fdt_prop);
+						structureBlock += sizeof(struct FdtProp);
 						uint8_t* name = structureString + nameoff;
 
 						switch(*name) {
@@ -102,7 +102,7 @@ bool init_dtb(uint8_t *dtb) {
 							sbi_console_putchar(*start);
 						}
 						
-						structureBlock += sizeof(struct fdt_prop);
+						structureBlock += sizeof(struct FdtProp);
 						for(int i = 0; i < 2; ++i) sbi_console_putchar(": "[i]);
 
 						if(len == 4) {
@@ -119,7 +119,7 @@ bool init_dtb(uint8_t *dtb) {
         							sbi_console_putchar(' ');
     							}
 						}
-						structureBlock -= sizeof(struct fdt_prop);
+						structureBlock -= sizeof(struct FdtProp);
 					}
 
 					structureBlock += len;

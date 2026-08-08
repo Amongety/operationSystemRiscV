@@ -8,9 +8,9 @@
 #include "../../kernelSpace/libc/string.h"
 #include "platformDevices.h"
 
-struct dtbPlatform dtbPlt;
+struct DtbPlatform dtbPlt;
 
-struct fdt_header {
+struct FdtHeader {
 	uint32_t magic;
 	uint32_t totalsize;
 	uint32_t off_dt_struct;
@@ -29,12 +29,12 @@ struct fdt_header {
 #define FDT_NOP 0x00000004
 #define FDT_END 0x00000009
 
-struct fdt_mmio {
+struct FdtMmio {
 	uint64_t address;
 	uint64_t size;
 };
 
-struct fdt_prop {
+struct FdtProp {
 	uint32_t len;
 	uint32_t nameoff;
 };

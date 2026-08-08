@@ -5,7 +5,7 @@
 #include "../../../bootloader/DTB/platformDevices.h"
 #include "../../drivers/sdmmc/sdmmc.h"
 
-struct dtbPlatform globalDTB;
+struct DtbPlatform globalDTB;
 
 extern void init_virtual_memory(uint64_t* root); 
 

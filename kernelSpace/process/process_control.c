@@ -17,7 +17,7 @@ struct Process* create_process(uint64_t func) {
 
 	if(newProc == NULL) PANIC("Process unit full");
 
-	newProc->frame = (struct trap_frame*)alloc_pages(1);
+	newProc->frame = (struct TrapFrame*)alloc_pages(1);
 	newProc->processStack = alloc_pages(2);
 	newProc->root = (struct Table*)alloc_pages(1);
 	newProc->processData = alloc_pages(1);

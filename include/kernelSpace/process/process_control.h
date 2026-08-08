@@ -20,7 +20,7 @@ extern unsigned char _text_end[];
 extern unsigned char _rodata_start[];
 extern unsigned char _rodata_end[];
 
-extern struct dtbPlatform globalDTB;
+extern struct DtbPlatform globalDTB;
 
 struct scause_t {
 	uint64_t exceptCode:63;
@@ -35,7 +35,7 @@ struct tf_csr_t {
 	uint64_t atp;
 };
 
-struct trap_frame {
+struct TrapFrame {
 	uint64_t ra;
 	uint64_t sp;
 	uint64_t gp;
@@ -79,7 +79,7 @@ enum ProcessState {
 };
 
 struct Process {
-	struct trap_frame* frame;
+	struct TrapFrame* frame;
 	unsigned char* processStack;
 	unsigned int pid;
 	struct Table* root;
@@ -90,7 +90,7 @@ struct Process {
 struct Process* create_process(uint64_t func);
 void delete_process(struct Process* proc); 
 struct Process schedule(void);
-extern void switchProc(struct trap_frame* addrFrame, uint64_t epc, uint64_t atp); 
+extern void switchProc(struct TrapFrame* addrFrame, uint64_t epc, uint64_t atp); 
 
 void sub_rotate(void);
 
