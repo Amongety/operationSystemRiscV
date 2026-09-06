@@ -62,6 +62,7 @@ static struct SuperBlockMinix3 superBlock;
 static uint32_t LBA;
 static uint8_t offsetBlock;
 
+uint32_t getInodeSize(long inode_num);
 void fsInitMinix3(void);
 struct InodeMinix3 getInodeMinix3(long inode_num);
 void putInodeMinix3(long inode_num, struct InodeMinix3 src);

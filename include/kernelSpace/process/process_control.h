@@ -4,11 +4,11 @@
 #include <stddef.h>
 #include "../arch/riscV/memory/mmu.h"
 #include "../../bootloader/DTB/platformDevices.h"
+#include "elf.h"
 
 #define PROCESS_MAX 8
 
 #define STACK_ADDR 0xf0000000
-#define PROC_START_ADDR 0x80800000
 
 extern unsigned char _data_start[];
 extern unsigned char _data_end[];
@@ -84,12 +84,13 @@ struct Process {
 	unsigned int pid;
 	struct Table* root;
 	enum ProcessState state;
-	unsigned char *processData;
+	unsigned char* program;
+	uint64_t programSize;
 };
 
-struct Process* create_process(uint64_t func);
+struct Process* create_process(const char* path);
 void delete_process(struct Process* proc); 
-struct Process schedule(void);
+struct Process* schedule(void);
 extern void switchProc(struct TrapFrame* addrFrame, uint64_t epc, uint64_t atp); 
 
 void sub_rotate(void);

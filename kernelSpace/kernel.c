@@ -28,7 +28,11 @@ void main(struct DtbPlatform DTB)
 	console_printf("UART. Addr: %x. Size: %x\r\n", globalDTB.uart[0].addr, globalDTB.uart[0].size);
 	console_printf("SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
 
-	long fd = mkdirMinix3("/trt", 0755);
+	create_process("/user.elf");
+	create_process("/user.elf");
+	sbi_set_timer(1);
+
+	/*long fd = mkdirMinix3("/trt", 0755);
 	long fd2 = openMinix3("/trt/testFile", 0755);
 	console_printf("Directory = %d\r\n", fd);
 	console_printf("File = %d\r\n", fd2);
@@ -45,7 +49,7 @@ void main(struct DtbPlatform DTB)
 	console_printf("\r\n");
 
 	unlinkMinix3("/trt/testFile");
-	rmdirMinix3("/trt");
+	rmdirMinix3("/trt");*/
 
 	/*
 	create_process(0x80800000); // userSpace/user_test.c	 void main(void)

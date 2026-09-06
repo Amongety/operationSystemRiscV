@@ -25,7 +25,10 @@ SOBJ = $(addprefix $(OUT_ELF_DIR)/, $(SSRC:.S=.o))
 ALLOBJ = $(SOBJ) $(COBJ)
 
 .PHONY: all
-all: $(OUT_ELF_DIR)/user.bin
+all: $(OUT_ELF_DIR)/user.elf
+
+.PHONY: bin
+bin: $(OUT_ELF_DIR)/user.bin
 
 $(COBJ): $(OUT_ELF_DIR)/%.o : %.c
 	@mkdir -p $(@D)

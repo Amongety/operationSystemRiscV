@@ -36,10 +36,10 @@ TODO:
 Создание и планирования процесса (планировщик) реализован в process\_contorl.c
 Переключение контекса процесса происходит в switch\_context.S
 Сохранение текущего процесса в стек, а в дальнейшем в массив процессов происходит в arch/riscV/trap.S, .../htrap.c
+Реализовано чтение ELF файла (process/elf.c)
 
 TODO:
 - Улучшить планировщик (scheldure) (process\_control.c)
-- Реализовать чтение ELF file (приоритет!)
 
 
 **Системный вызов (arch/riscV/systemCalls/syscall.c)**
@@ -161,3 +161,4 @@ uint64_t writeInodeMinix3(long inode_num, uint8_t* buff, uint64_t size, uint64_t
 
 TODO:
 Добавить attime, mtime, ctime, uid, gid
+Сделать файловый дескриптор

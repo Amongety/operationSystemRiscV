@@ -16,11 +16,11 @@ uint64_t handler_trap(struct TrapFrame *tf) {
 
 				if(prevProcess) *(prevProcess->frame) = *tf; 
 				
-				struct Process curProc = schedule();
-				
+				struct Process* curProc = schedule();
+
 				sbi_set_timer(10000000);
 
-				switchProc(curProc.frame, curProc.frame->csr_reg.epc, curProc.frame->csr_reg.atp); // (0x8000000000000000 | (newProc->pid << 44) | (((uint64_t)newProc->root) >> 12));
+				switchProc(curProc->frame, curProc->frame->csr_reg.epc, curProc->frame->csr_reg.atp); // (0x8000000000000000 | (newProc->pid << 44) | (((uint64_t)newProc->root) >> 12));
 
 				break;
 			}

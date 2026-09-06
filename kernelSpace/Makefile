@@ -16,7 +16,7 @@ COMMONINC =  -I ../include/kernelSpace/ -I ../include/kernelSpace/arch/riscV -I 
 
 override CFLAGS += $(COMMONINC)
 
-CSRC = kernel.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c libc/byteOrder.c process/process_control.c arch/riscV/systemCalls/syscall.c drivers/uart/uart.c drivers/sdmmc/sdmmc.c debug/kdebug.c filesystem/fs.c filesystem/parsingDisk.c
+CSRC = kernel.c arch/riscV/htrap.c arch/riscV/memory/alloc.c arch/riscV/memory/mmu.c libc/string.c libc/byteOrder.c process/process_control.c process/elf.c arch/riscV/systemCalls/syscall.c drivers/uart/uart.c drivers/sdmmc/sdmmc.c debug/kdebug.c filesystem/fs.c filesystem/parsingDisk.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
 
 SSRC = arch/riscV/kernel_init.S libsbi/dbcn.S libsbi/le.S arch/riscV/panic.S arch/riscV/trap.S arch/riscV/common.S libsbi/te.S process/switch_context.S

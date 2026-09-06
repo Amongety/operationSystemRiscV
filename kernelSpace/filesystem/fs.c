@@ -1,5 +1,10 @@
 #include "../../include/kernelSpace/filesystem/fs.h"
 
+uint32_t getInodeSize(long inode_num) {
+	struct InodeMinix3 inode = getInodeMinix3(inode_num);
+	return inode.size;
+}
+
 void fsInitMinix3() {
 	parsingMBRPart(131, &LBA);
 	uint8_t buff[1024], zmap[1024], imap[1024];

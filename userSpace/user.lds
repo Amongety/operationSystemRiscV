@@ -2,7 +2,7 @@ ENTRY(_start)
 
 SECTIONS
 {
-	. = 0x80800000;
+	. = 0x40000000;
 	
 	.text : ALIGN(4096) {
 		*(.text)
