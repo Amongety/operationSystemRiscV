@@ -11,12 +11,11 @@ uint64_t handler_trap(struct TrapFrame *tf) {
 
 			case 5: 
 			{
-				uint64_t sie = read_csr_sie();
-				write_csr_sie(sie & (~0x20));
-
 				if(prevProcess) *(prevProcess->frame) = *tf; 
 				
 				struct Process* curProc = schedule();
+
+				if(curProc == NULL) PANIC("Empty process");
 
 				sbi_set_timer(10000000);
 

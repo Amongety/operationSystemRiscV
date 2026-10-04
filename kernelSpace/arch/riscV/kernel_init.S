@@ -21,7 +21,7 @@ kernel_init:
 	call clear_bss
 
 	/* Загрузка программного обработчика */
-	la t0, asm_trap_vector
+	la t0, kernel_trap_vector
 	csrw stvec, t0
 
 	ld ra, 0(sp)

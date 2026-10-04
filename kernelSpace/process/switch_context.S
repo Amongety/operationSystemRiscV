@@ -2,21 +2,21 @@
 .section .text
 .global switchProc
 switchProc:
-	csrw sscratch, a0
+	li t1, 0x2 | 0x100
+	csrc sstatus, t1 			/* csrc - сброс бита (И) */
 
-	li t1, 0x2 | 0x20 | 0x100
+	li t1, 0x20
 	csrs sstatus, t1 			/* csrs - установка битов (ИЛИ) */
 
+	csrw sscratch, a0
+
 	csrw sepc, a1
+	li t1, 0x222
+	csrw sie, t1
+	la t2, user_trap_vector
+	csrw stvec, t2
 	csrw satp, a2
 	sfence.vma
-	li t1, 0x222
-	csrs sie, t1
-	la t2, asm_trap_vector
-	csrw stvec, t2
-
-	li t1, 0x100
-	csrc sstatus, t1 			/* csrc - сброс бита (И) */
 
 	ld ra, 8 * 0(a0)
 	ld sp, 8 * 1(a0)
@@ -48,7 +48,6 @@ switchProc:
 	ld t4, 8 * 28(a0)
 	ld t5, 8 * 29(a0)
 	ld t6, 8 * 30(a0)
-	
-	li a0, 0
+	ld a0, 8 * 9(a0)
 
 	sret	
