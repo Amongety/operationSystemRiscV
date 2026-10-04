@@ -78,18 +78,50 @@ init_virtual_memory:
 	/* UART */
 	ld a0, 0(sp)
 	la t0, globalDTB
-	lw a1, 0(t0)
-	lw a2, 0(t0)
+	ld a1, 0(t0)
+	ld a2, 0(t0)
 	li a3, 0x6 | 0xC0
 	call map_page
 
 	/* SD CARD */
 	ld a0, 0(sp)
 	la t0, globalDTB
-	lw a1, 80(t0)
-	lw a2, 80(t0)
+	ld a1, 80(t0)
+	ld a2, 80(t0)
 	li a3, 0x6 | 0xC0
 	call map_page
+
+	/* GPIO */
+	ld a0, 0(sp)
+	la t0, globalDTB
+	ld a1, 96(t0)
+	ld a2, 96(t0)
+	li a3, 0x6 | 0xC0
+	call map_page
+
+/*	ld a0, 0(sp)
+	la t0, globalDTB
+
+	li s1, 0
+    li s2, 5
+
+.loopGpio:
+    bge s1, s2, .endGpio
+
+    li t2, 16					gpio[i] = globalDTB + 80 + s1 * 1			
+    mul t1, s1, t2
+    addi t1, t1, 80
+    add t0, t0, t1
+
+    ld a1, 0(t0)
+    ld a2, 0(t0)
+    li a3, 0x6 | 0xC0
+
+    call map_page
+
+    addi s1, s1, 1
+    j .loopGpio
+.endGpio:*/
 	
 	ld a0, 0(sp)
 	mv t0, a0

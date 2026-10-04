@@ -2,6 +2,7 @@
 #include "../include/kernelSpace/arch/riscV/kernel_init.h"
 #include "../include/kernelSpace/libsbi/te.h"
 #include "../include/kernelSpace/filesystem/fs.h"
+#include "../include/kernelSpace/drivers/gpio/gpio.h"
 
 void main(struct DtbPlatform DTB) 
 {
@@ -12,7 +13,7 @@ void main(struct DtbPlatform DTB)
 	init_virtual_memory(root_page_table);
 	
 	init_uart(queryMode, globalDTB.uart[0].addr);
-	if(!init_sdmmc(globalDTB.sd.addr)) PANIC("Error init SD-CARD");	
+	if(!init_sdmmc(globalDTB.sd.addr)) PANIC("Error init SD-CARD");
 	
 	fsInitMinix3();
 
@@ -27,12 +28,13 @@ void main(struct DtbPlatform DTB)
 
 	console_printf("UART. Addr: %x. Size: %x\r\n", globalDTB.uart[0].addr, globalDTB.uart[0].size);
 	console_printf("SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
+	for(int i = 0; i < GPIO_MAX; ++i) console_printf("GPIO. Addr: %x. Size: %x\r\n", globalDTB.gpio[i].addr, globalDTB.gpio[i].size);
 
-	create_process("/user.elf");
+	/*create_process("/user.elf");
 	create_process("/user.elf");
 	sbi_set_timer(1);
 
-	/*long fd = mkdirMinix3("/trt", 0755);
+	long fd = mkdirMinix3("/trt", 0755);
 	long fd2 = openMinix3("/trt/testFile", 0755);
 	console_printf("Directory = %d\r\n", fd);
 	console_printf("File = %d\r\n", fd2);
@@ -59,6 +61,15 @@ void main(struct DtbPlatform DTB)
 	*/
 
 	console_printf("\r\nDONE INIT KERNEL\r\n");
+
+	uint32_t addr = globalDTB.gpio[0].addr + 28 * 0x64;
+	initGPIO(addr, GPIO_OUTPUT);
+	while(true) {
+		setGpio(addr, 1);
+		for(volatile int i = 0; i < 100000; ++i) asm("nop");
+		setGpio(addr, 0);
+		for(volatile int i = 0; i < 100000; ++i) asm("nop");
+	}
 
 	while(1) {
 		asm("wfi");

@@ -31,6 +31,7 @@ bool init_dtb(uint8_t *dtb) {
 			uint32_t token = bswap32(*((uint32_t*)structureBlock));
 			bool uart = false;
 			bool sd = false;
+			bool gpio = false;
 
 			while(token != FDT_END) {
 				token = bswap32(*((uint32_t*)structureBlock));
@@ -43,7 +44,8 @@ bool init_dtb(uint8_t *dtb) {
 					for(char* tst = name; *tst != '\0'; ++tst) sbi_console_putchar(*tst);
 
 					if(!strncmp(name, "uart", 4) || !strncmp(name, "serial", 6)) uart = true;
-					if(!strncmp(name, "cv-sd", 5)) sd = true;	
+					if(!strncmp(name, "cv-sd", 5)) sd = true;
+					if(!strncmp(name, "gpio", 4)) gpio = true;
 
 					structureBlock += strlen(name) + 1;
 					structureBlock = (uint8_t*)(((uint64_t)structureBlock + 3) & ~3);
@@ -63,34 +65,53 @@ bool init_dtb(uint8_t *dtb) {
 
 						switch(*name) {
 							case 'r': {
-								if(uart && !strcmp(name, "reg")) {
-									bool add = false;
-									uint64_t addr = bswap64(*((uint64_t*)structureBlock));
-									uint64_t size = bswap64(*((uint64_t*)(structureBlock + sizeof(uint64_t))));
+								if(!strcmp(name, "reg")) {
+									if(uart) {
+										bool add = false;
+										uint64_t addr = bswap64(*((uint64_t*)structureBlock));
+										uint64_t size = bswap64(*((uint64_t*)(structureBlock + sizeof(uint64_t))));
 
-									for(int i = 0; i < UART_MAX; ++i) {
-										if(dtbPlt.uart[i].addr == 0 && dtbPlt.uart[i].size == 0) {
-											dtbPlt.uart[i].addr = addr;
-											dtbPlt.uart[i].size = size;
-											add = true;
-											break;
+										for(int i = 0; i < UART_MAX; ++i) {
+											if(dtbPlt.uart[i].addr == 0 && dtbPlt.uart[i].size == 0) {
+												dtbPlt.uart[i].addr = addr;
+												dtbPlt.uart[i].size = size;
+												add = true;
+												break;
+											}
+										}
+
+										if(!add) {
+											for(int i = 0; i < 29; ++i) sbi_console_putchar("Error Uart. Max supported OS\n"[i]);
 										}
 									}
 
-									if(!add) {
-										for(int i = 0; i < 29; ++i) sbi_console_putchar("Error Uart. Max supported OS\n"[i]);
+									else if(sd) {
+										uint64_t addr = bswap64(*((uint64_t*)structureBlock));
+										uint64_t size = bswap64(*((uint64_t*)(structureBlock + sizeof(uint64_t))));
+
+										dtbPlt.sd.addr = addr;
+										dtbPlt.sd.size = size;
+									}
+
+									else if(gpio) {
+										bool add = false;
+										uint64_t addr = bswap64(*((uint64_t*)structureBlock));
+										uint64_t size = bswap64(*((uint64_t*)(structureBlock + sizeof(uint64_t))));
+
+										for(int i = 0; i < GPIO_MAX; ++i) {
+											if(dtbPlt.gpio[i].addr == 0 && dtbPlt.gpio[i].size == 0) {
+												dtbPlt.gpio[i].addr = addr;
+												dtbPlt.gpio[i].size = size;
+												add = true;
+												break;
+											}
+										}
+
+										if(!add) {
+											for(int i = 0; i < 30; ++i) sbi_console_putchar("Error GPIO. Max supported OS\n"[i]);
+										}
 									}
 								}
-
-								else if(sd && !strcmp(name, "reg")) {
-									uint64_t addr = bswap64(*((uint64_t*)structureBlock));
-									uint64_t size = bswap64(*((uint64_t*)(structureBlock + sizeof(uint64_t))));
-
-									dtbPlt.sd.addr = addr;
-									dtbPlt.sd.size = size;
-								}
-
-
 								break;
 							}
 
@@ -132,6 +153,7 @@ bool init_dtb(uint8_t *dtb) {
 				else if(token == FDT_END_NODE) {
 					uart = false;
 					sd = false;
+					gpio = false;
 				}
 			}
 			break;
