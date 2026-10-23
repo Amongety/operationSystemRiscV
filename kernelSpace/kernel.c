@@ -26,15 +26,15 @@ void main(struct DtbPlatform DTB)
 
 	console_printf("Hello debug SBI!\r\n");
 
-	console_printf("UART. Addr: %x. Size: %x\r\n", globalDTB.uart[0].addr, globalDTB.uart[0].size);
+	for(int i = 0; i < UART_MAX; ++i) console_printf("UART%d. Addr: %x. Size: %x\r\n", i, globalDTB.uart[i].addr, globalDTB.uart[i].size);
 	console_printf("SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
-	for(int i = 0; i < GPIO_MAX; ++i) console_printf("GPIO. Addr: %x. Size: %x\r\n", globalDTB.gpio[i].addr, globalDTB.gpio[i].size);
+	for(int i = 0; i < GPIO_MAX; ++i) console_printf("GPIO%d. Addr: %x. Size: %x\r\n", i, globalDTB.gpio[i].addr, globalDTB.gpio[i].size);
 
-	/*create_process("/user.elf");
 	create_process("/user.elf");
+	// create_process("/user.elf");
 	sbi_set_timer(1);
 
-	long fd = mkdirMinix3("/trt", 0755);
+	/*long fd = mkdirMinix3("/trt", 0755);
 	long fd2 = openMinix3("/trt/testFile", 0755);
 	console_printf("Directory = %d\r\n", fd);
 	console_printf("File = %d\r\n", fd2);
@@ -62,14 +62,15 @@ void main(struct DtbPlatform DTB)
 
 	console_printf("\r\nDONE INIT KERNEL\r\n");
 
-	uint32_t addr = globalDTB.gpio[0].addr + 28 * 0x64;
-	initGPIO(addr, GPIO_OUTPUT);
-	while(true) {
-		setGpio(addr, 1);
-		for(volatile int i = 0; i < 100000; ++i) asm("nop");
-		setGpio(addr, 0);
-		for(volatile int i = 0; i < 100000; ++i) asm("nop");
-	}
+	// initGPIO(globalDTB.gpio[0].addr, 29, GPIO_OUTPUT);
+	// while(true) {
+	// 	setGpio(globalDTB.gpio[0].addr, 29, 1);
+	// 	console_printf("Set 1\r\n");
+	// 	for(volatile int i = 0; i < 5000000; ++i) asm("nop");
+	// 	console_printf("Set 0\r\n");
+	// 	setGpio(globalDTB.gpio[0].addr, 29, 0);
+	// 	for(volatile int i = 0; i < 5000000; ++i) asm("nop");
+	// }
 
 	while(1) {
 		asm("wfi");

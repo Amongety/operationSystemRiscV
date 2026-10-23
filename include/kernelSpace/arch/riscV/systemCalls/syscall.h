@@ -1,10 +1,12 @@
 #ifndef __SYSCALL_H__
 #define __SYSCALL_H__
 
-#include "../../../process/process_control.h"
+#include "kexit.h"
+#include "kioctl.h"
 #include "../common.h"
 
 #define SYSCALL_CLONE 					0xdc
+#define SYSCALL_IOCTL                   0x1d
 #define SYSCALL_EXIT 					0x5d
 #define SYSCALL_WAITPID 				0x5f
 #define SYSCALL_EXECVE 					0xdd
@@ -39,10 +41,6 @@
 #define SYSCALL_UMASK	 				0xa6
 #define SYSCALL_FCHOWN 					0x37
 
-extern struct Process bufProc[PROCESS_MAX];
-extern struct Process* prevProcess;
-
 uint64_t do_syscall(struct TrapFrame* tf);
-void do_exit(void);
 
 #endif

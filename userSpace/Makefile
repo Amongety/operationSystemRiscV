@@ -16,7 +16,7 @@ override CFLAGS += $(COMMONINC)
 
 OBJCOPY = riscv64-unknown-elf-objcopy
 
-CSRC = user_test.c
+CSRC = user_test.c sys/ioctl.c
 COBJ = $(addprefix $(OUT_ELF_DIR)/, $(CSRC:.c=.o))
 
 SSRC = user.S

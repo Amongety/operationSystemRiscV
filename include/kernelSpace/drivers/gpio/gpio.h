@@ -20,8 +20,8 @@
 #define OFFSET_GPIO_EXT_PORTA 0x50
 #define OFFSET_GPIO_LS_SYNC 0x60
 
-void initGPIO(uint64_t addr, uint8_t mode);
-void setGpio(uint64_t addr, uint32_t value);
-uint32_t getGpio(uint64_t addr);
+void initGPIO(uint64_t addr, uint64_t pin, uint8_t mode);
+void setGpio(uint64_t addr, uint64_t pin, uint32_t value);
+uint32_t getGpio(uint64_t addr, uint64_t pin);
 
 #endif

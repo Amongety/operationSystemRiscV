@@ -43,9 +43,9 @@ bool init_dtb(uint8_t *dtb) {
 					//
 					for(char* tst = name; *tst != '\0'; ++tst) sbi_console_putchar(*tst);
 
-					if(!strncmp(name, "uart", 4) || !strncmp(name, "serial", 6)) uart = true;
-					if(!strncmp(name, "cv-sd", 5)) sd = true;
-					if(!strncmp(name, "gpio", 4)) gpio = true;
+					if(!strncmp(name, "uart@", 5) || !strncmp(name, "serial@", 7)) uart = true;
+					if(!strncmp(name, "cv-sd@", 6)) sd = true;
+					if(!strncmp(name, "gpio@", 5)) gpio = true;
 
 					structureBlock += strlen(name) + 1;
 					structureBlock = (uint8_t*)(((uint64_t)structureBlock + 3) & ~3);
@@ -76,6 +76,7 @@ bool init_dtb(uint8_t *dtb) {
 												dtbPlt.uart[i].addr = addr;
 												dtbPlt.uart[i].size = size;
 												add = true;
+												uart = false;
 												break;
 											}
 										}
@@ -91,6 +92,7 @@ bool init_dtb(uint8_t *dtb) {
 
 										dtbPlt.sd.addr = addr;
 										dtbPlt.sd.size = size;
+										sd = false;
 									}
 
 									else if(gpio) {
@@ -103,6 +105,7 @@ bool init_dtb(uint8_t *dtb) {
 												dtbPlt.gpio[i].addr = addr;
 												dtbPlt.gpio[i].size = size;
 												add = true;
+												gpio = false;
 												break;
 											}
 										}
@@ -150,11 +153,8 @@ bool init_dtb(uint8_t *dtb) {
 					sbi_console_putchar('\n');
 				}
 
-				else if(token == FDT_END_NODE) {
-					uart = false;
-					sd = false;
-					gpio = false;
-				}
+				/*else if(token == FDT_END_NODE) {
+				}*/
 			}
 			break;
 		}

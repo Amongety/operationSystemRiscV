@@ -85,8 +85,9 @@ struct Process* create_process(const char* path) {
 	id_map_page_range(newProc->root, (unsigned char*)_data_start, (unsigned char*)_data_end, 0x6 | 0xC0);
 	id_map_page_range(newProc->root, (unsigned char*)_bss_start, (unsigned char*)_bss_end, 0x6 | 0xC0);
 	id_map_page_range(newProc->root, (unsigned char*)_stack - 128 * 1024, (unsigned char*)_stack, 0x6 | 0xC0);
-	map_page(newProc->root, (unsigned char*)globalDTB.uart[0].addr, (unsigned char*)globalDTB.uart[0].addr, 0x6 | 0xC0);
+	for(int i = 0; i < UART_MAX; ++i) map_page(newProc->root, (unsigned char*)globalDTB.uart[i].addr, (unsigned char*)globalDTB.uart[i].addr, 0x6 | 0xC0);
 	map_page(newProc->root, (unsigned char*)globalDTB.sd.addr, (unsigned char*)globalDTB.sd.addr, 0x6 | 0xC0);
+	for(int i = 0; i < GPIO_MAX; ++i) map_page(newProc->root, (unsigned char*)globalDTB.gpio[i].addr, (unsigned char*)globalDTB.gpio[i].addr, 0x6 | 0xC0);
 
 	dealloc_page(buff, n);
 
