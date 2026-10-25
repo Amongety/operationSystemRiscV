@@ -6,7 +6,7 @@ uint64_t handler_trap(struct TrapFrame *tf) {
 	if(tf->csr_reg.cause.interrupt == 1) {
 		switch(tf->csr_reg.cause.exceptCode) {
 			case 1:
-				console_printf("\nSupervisor software interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				console_printf(globalDTB.uart[0].addr, "\nSupervisor software interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 5: 
@@ -25,11 +25,11 @@ uint64_t handler_trap(struct TrapFrame *tf) {
 			}
 
 			case 9:
-				console_printf("\r\nSupervisor external interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				console_printf(globalDTB.uart[0].addr, "\r\nSupervisor external interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			case 13:
-				console_printf("\r\nCounter-overflow interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
+				console_printf(globalDTB.uart[0].addr, "\r\nCounter-overflow interrupt 0x%x: 0x%x\r\n\r\n", tf->csr_reg.epc, tf->csr_reg.tval);
 				break;
 
 			default:
@@ -72,12 +72,12 @@ uint64_t handler_trap(struct TrapFrame *tf) {
 				break;
 
 			case 8:
-				console_printf("\r\nCall. Environment call (ecall) from U-mode 0x%x\r\n\r\n", tf->csr_reg.epc);
+				// console_printf(globalDTB.uart[0].addr, "\r\nCall. Environment call (ecall) from U-mode 0x%x\r\n\r\n", tf->csr_reg.epc);
 				next_epc = do_syscall(tf);
 				break;
 
 			case 9:
-				console_printf("\r\nEnvironment call (ecall) from S-mode! 0x%x\r\n\r\n", tf->csr_reg.epc);
+				console_printf(globalDTB.uart[0].addr, "\r\nEnvironment call (ecall) from S-mode! 0x%x\r\n\r\n", tf->csr_reg.epc);
 				next_epc += 4;
 				break;
 

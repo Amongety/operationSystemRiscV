@@ -10,12 +10,12 @@
 
 extern void halt(void);
 
-console_ret_t console_printf(const unsigned char* format, ...);
+console_ret_t console_printf(uint64_t addr, const unsigned char* format, ...);
 uint8_t console_getchar(void);
 
 #define PANIC(format, ...)											\
 	do {													\
-		console_printf("PANIC: %s:%d: " format "\r\n", __FILE__, __LINE__, ##__VA_ARGS__);		\
+		console_printf(globalDTB.uart[0].addr, "PANIC: %s:%d: " format "\r\n", __FILE__, __LINE__, ##__VA_ARGS__);		\
 														\
 		halt();												\
 	} while(0)

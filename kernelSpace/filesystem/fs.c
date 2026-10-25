@@ -14,8 +14,8 @@ void fsInitMinix3() {
 	offsetBlock = superBlock.block_size / BLOCK_BYTE;
 
 	if(superBlock.magic == MAGIC_MINIX_3) {
-		console_printf("\r\nMINIX 3\r\n");
-		console_printf("LBA: %d\r\nninodes: %d\r\nimap_blocks: %d\r\nzmap_blocks: %d\r\nfirst_data_zone: %d\r\nlog_zone_size: %d\r\nmax_size: %d\r\nzones: %d\r\nmagic: %d\r\nblock_size: %d\r\ndisk_version: %d\r\n", LBA, superBlock.ninodes, superBlock.imap_blocks, superBlock.zmap_blocks, superBlock.first_data_zone, superBlock.log_zone_size, superBlock.max_size, superBlock.zones, superBlock.magic, superBlock.block_size, superBlock.disk_version);
+		console_printf(globalDTB.uart[0].addr, "\r\nMINIX 3\r\n");
+		console_printf(globalDTB.uart[0].addr, "LBA: %d\r\nninodes: %d\r\nimap_blocks: %d\r\nzmap_blocks: %d\r\nfirst_data_zone: %d\r\nlog_zone_size: %d\r\nmax_size: %d\r\nzones: %d\r\nmagic: %d\r\nblock_size: %d\r\ndisk_version: %d\r\n", LBA, superBlock.ninodes, superBlock.imap_blocks, superBlock.zmap_blocks, superBlock.first_data_zone, superBlock.log_zone_size, superBlock.max_size, superBlock.zones, superBlock.magic, superBlock.block_size, superBlock.disk_version);
 	}
 }
 

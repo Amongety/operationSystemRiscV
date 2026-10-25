@@ -95,7 +95,7 @@ struct Process* create_process(const char* path) {
 }
 
 void delete_process(struct Process* proc) {
-	console_printf("Current Process deleting %d\r\n", proc->pid);
+	console_printf(globalDTB.uart[0].addr, "Current Process deleting %d\r\n", proc->pid);
 
 	dealloc_page((unsigned char*)proc->frame, 1);
 	dealloc_page((unsigned char*)proc->processStack, 35);
@@ -119,7 +119,7 @@ struct Process* schedule() {
 		sub_rotate();
 	}
 
-	console_printf("Current PID: %d\r\n", bufProc[0].pid);
+	console_printf(globalDTB.uart[0].addr, "Current PID: %d\r\n", bufProc[0].pid);
 
 	prevProcess = &(bufProc[0]);
 
