@@ -106,6 +106,8 @@ init_virtual_memory:
 	li a3, 0x6 | 0xC0
 	call map_page
 
+	/* I2C */
+
 /*	ld a0, 0(sp)
 	la t0, globalDTB
 

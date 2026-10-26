@@ -29,6 +29,7 @@ void main(struct DtbPlatform DTB)
 	for(int i = 0; i < UART_MAX; ++i) console_printf(globalDTB.uart[0].addr, "UART%d. Addr: %x. Size: %x\r\n", i, globalDTB.uart[i].addr, globalDTB.uart[i].size);
 	console_printf(globalDTB.uart[0].addr, "SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
 	for(int i = 0; i < GPIO_MAX; ++i) console_printf(globalDTB.uart[0].addr, "GPIO%d. Addr: %x. Size: %x\r\n", i, globalDTB.gpio[i].addr, globalDTB.gpio[i].size);
+	for(int i = 0; i < I2C_MAX; ++i) console_printf(globalDTB.uart[0].addr, "I2C%d. Addr: %x. Size: %x\r\n", i, globalDTB.i2c[i].addr, globalDTB.i2c[i].size);
 
 	create_process("/user.elf");
 	// create_process("/user.elf");

@@ -3,6 +3,7 @@
 
 #define UART_MAX 5
 #define GPIO_MAX 5
+#define I2C_MAX 5
 
 struct Uart {
 	uint64_t addr;
@@ -19,10 +20,16 @@ struct Gpio {
 	uint64_t size;
 };
 
+struct I2C {
+	uint64_t addr;
+	uint64_t size;
+};
+
 struct DtbPlatform {
 	struct Uart uart[UART_MAX];
 	struct SdCard sd;
 	struct Gpio gpio[GPIO_MAX];
+	struct I2C i2c[I2C_MAX];
 };
 
 extern struct DtbPlatform dtbPlt;

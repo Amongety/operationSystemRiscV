@@ -32,6 +32,7 @@ bool init_dtb(uint8_t *dtb) {
 			bool uart = false;
 			bool sd = false;
 			bool gpio = false;
+			bool i2c = false;
 
 			while(token != FDT_END) {
 				token = bswap32(*((uint32_t*)structureBlock));
@@ -46,6 +47,7 @@ bool init_dtb(uint8_t *dtb) {
 					if(!strncmp(name, "uart@", 5) || !strncmp(name, "serial@", 7)) uart = true;
 					if(!strncmp(name, "cv-sd@", 6)) sd = true;
 					if(!strncmp(name, "gpio@", 5)) gpio = true;
+					if(!strncmp(name, "i2c@", 4)) i2c = true;
 
 					structureBlock += strlen(name) + 1;
 					structureBlock = (uint8_t*)(((uint64_t)structureBlock + 3) & ~3);
@@ -106,6 +108,26 @@ bool init_dtb(uint8_t *dtb) {
 												dtbPlt.gpio[i].size = size;
 												add = true;
 												gpio = false;
+												break;
+											}
+										}
+
+										if(!add) {
+											for(int i = 0; i < 30; ++i) sbi_console_putchar("Error GPIO. Max supported OS\n"[i]);
+										}
+									}
+
+									else if(i2c) {
+										bool add = false;
+										uint64_t addr = bswap64(*((uint64_t*)structureBlock));
+										uint64_t size = bswap64(*((uint64_t*)(structureBlock + sizeof(uint64_t))));
+
+										for(int i = 0; i < I2C_MAX; ++i) {
+											if(dtbPlt.i2c[i].addr == 0 && dtbPlt.i2c[i].size == 0) {
+												dtbPlt.i2c[i].addr = addr;
+												dtbPlt.i2c[i].size = size;
+												add = true;
+												i2c = false;
 												break;
 											}
 										}
