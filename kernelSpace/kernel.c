@@ -31,9 +31,9 @@ void main(struct DtbPlatform DTB)
 	for(int i = 0; i < GPIO_MAX; ++i) console_printf(globalDTB.uart[0].addr, "GPIO%d. Addr: %x. Size: %x\r\n", i, globalDTB.gpio[i].addr, globalDTB.gpio[i].size);
 	for(int i = 0; i < I2C_MAX; ++i) console_printf(globalDTB.uart[0].addr, "I2C%d. Addr: %x. Size: %x\r\n", i, globalDTB.i2c[i].addr, globalDTB.i2c[i].size);
 
-	create_process("/user.elf");
 	// create_process("/user.elf");
-	sbi_set_timer(1);
+	// create_process("/user.elf");
+	// sbi_set_timer(1);
 
 	/*long fd = mkdirMinix3("/trt", 0755);
 	long fd2 = openMinix3("/trt/testFile", 0755);
@@ -63,15 +63,15 @@ void main(struct DtbPlatform DTB)
 
 	console_printf(globalDTB.uart[0].addr, "\r\nDONE INIT KERNEL\r\n");
 
-	// initGPIO(globalDTB.gpio[0].addr, 29, GPIO_OUTPUT);
-	// while(true) {
-	// 	setGpio(globalDTB.gpio[0].addr, 29, 1);
-	// 	console_printf(globalDTB.uart[0].addr, "Set 1\r\n");
-	// 	for(volatile int i = 0; i < 5000000; ++i) asm("nop");
-	// 	console_printf(globalDTB.uart[0].addr, "Set 0\r\n");
-	// 	setGpio(globalDTB.gpio[0].addr, 29, 0);
-	// 	for(volatile int i = 0; i < 5000000; ++i) asm("nop");
-	// }
+	/*initGPIO(globalDTB.gpio[0].addr, 29, GPIO_OUTPUT);
+	while(true) {
+		setGpio(globalDTB.gpio[0].addr, 29, 1);
+		console_printf(globalDTB.uart[0].addr, "Set 1\r\n");
+		for(volatile int i = 0; i < 5000000; ++i) asm("nop");
+		console_printf(globalDTB.uart[0].addr, "Set 0\r\n");
+		setGpio(globalDTB.gpio[0].addr, 29, 0);
+		for(volatile int i = 0; i < 5000000; ++i) asm("nop");
+	}*/
 
 	while(1) {
 		asm("wfi");

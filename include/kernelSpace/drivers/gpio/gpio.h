@@ -2,7 +2,6 @@
 #define __GPIO_H__
 
 #include "../mmio.h"
-#include <stdint.h>
 
 #define GPIO_INPUT 0
 #define GPIO_OUTPUT 1

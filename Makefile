@@ -4,7 +4,7 @@ USERSPACE = build/userSpace/user.o
 DISK_ISO = osRiscV.iso
 DISK_IMG = osRiscV.img
 FLASH = osRiscV.bin
-SD_DEVICE = /dev/sde
+SD_DEVICE = /dev/sdc
 
 PREFIX_DPK := /opt/riscv
 SRC_DPK := riscv-gnu-toolchain

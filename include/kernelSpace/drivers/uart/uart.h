@@ -1,10 +1,7 @@
 #ifndef __UART_H__
 #define __UART_H__
 
-#include "../mmio.h"
-#include "../../../bootloader/DTB/platformDevices.h"
-
-extern struct DtbPlatform globalDTB;
+#include <stdint.h>
 
 enum UARTmode {
 	queryMode = 0,

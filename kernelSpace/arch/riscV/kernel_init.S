@@ -76,61 +76,31 @@ init_virtual_memory:
 	call id_map_page_range
 
 	/* UART */
-	ld a0, 0(sp)
-	la t0, globalDTB
-	ld a1, 0(t0)
-	ld a2, 0(t0)
-	li a3, 0x6 | 0xC0
-	call map_page
+    ld a0, 0(sp)
+    la a1, globalDTB
+    li a2, 5
+    call map_dtb_group
 
-	/* SD CARD */
-	ld a0, 0(sp)
-	la t0, globalDTB
-	ld a1, 80(t0)
-	ld a2, 80(t0)
-	li a3, 0x6 | 0xC0
-	call map_page
+    /* SD CARD */
+    ld a0, 0(sp)
+    la a1, globalDTB
+    addi a1, a1, 80
+    li a2, 1
+    call map_dtb_group
 
-	/* GPIO */
-	ld a0, 0(sp)
-	la t0, globalDTB
-	ld a1, 96(t0)
-	ld a2, 96(t0)
-	li a3, 0x6 | 0xC0
-	call map_page
+    /* GPIO */
+    ld a0, 0(sp)
+    la a1, globalDTB
+    addi a1, a1, 96
+    li a2, 5
+    call map_dtb_group
 
-	ld a0, 0(sp)
-	la t0, globalDTB
-	ld a1, 112(t0)
-	ld a2, 112(t0)
-	li a3, 0x6 | 0xC0
-	call map_page
-
-	/* I2C */
-
-/*	ld a0, 0(sp)
-	la t0, globalDTB
-
-	li s1, 0
-    li s2, 5
-
-.loopGpio:
-    bge s1, s2, .endGpio
-
-    li t2, 16					gpio[i] = globalDTB + 80 + s1 * 1			
-    mul t1, s1, t2
-    addi t1, t1, 80
-    add t0, t0, t1
-
-    ld a1, 0(t0)
-    ld a2, 0(t0)
-    li a3, 0x6 | 0xC0
-
-    call map_page
-
-    addi s1, s1, 1
-    j .loopGpio
-.endGpio:*/
+    /* I2C */
+    ld a0, 0(sp)
+    la a1, globalDTB
+    addi a1, a1, 176
+    li a2, 5
+    call map_dtb_group
 	
 	ld a0, 0(sp)
 	mv t0, a0
@@ -145,3 +115,44 @@ init_virtual_memory:
 	addi sp, sp, 16
 
 	ret
+
+/* Парсер для перефирии >= 1 */
+map_dtb_group:
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd s0, 16(sp)
+    sd s1, 8(sp)
+    sd s2, 0(sp)
+
+    mv s0, a0				/* root_page_table */
+    mv s1, a1				/* указатель на структуру dtb */
+    mv s2, a2				/* кол-во устройств */
+
+1:
+    beqz s2, 3f
+
+    ld a1, 0(s1)			/* .addr */
+    ld a2, 8(s1)			/* .size */
+
+	/* Защита от нулевого адреса */
+	beqz a2, 2f
+
+    add a2, a1, a2			/* addr_end = addr_start + size */
+    mv a0, s0
+    li a3, 0x6 | 0xC0
+
+    call id_map_page_range
+
+/* Цикл кол-во интерфейса */
+2:
+    addi s1, s1, 16			/* Следующая структура */
+    addi s2, s2, -1
+    j 1b
+
+3:
+    ld s2, 0(sp)
+    ld s1, 8(sp)
+    ld s0, 16(sp)
+    ld ra, 24(sp)
+    addi sp, sp, 32
+    ret

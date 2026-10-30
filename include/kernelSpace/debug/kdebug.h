@@ -7,7 +7,10 @@
 #include "../libsbi/le.h"
 #include "../libsbi/dbcn.h"
 #include "../drivers/uart/uart.h"
+#include "../drivers/mmio.h"
+#include "../bootloader/DTB/platformDevices.h"
 
+extern struct DtbPlatform globalDTB;
 extern void halt(void);
 
 console_ret_t console_printf(uint64_t addr, const unsigned char* format, ...);

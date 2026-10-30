@@ -1,11 +1,28 @@
 #ifndef __I2C_H__
 #define __I2C_H__
 
-#include <stdint.h>
+#include "../mmio.h"
+
+struct IC_CON {
+    volatile uint32_t MASTER_MODE:1;
+    volatile uint32_t SPEED:2;
+    volatile uint32_t IC_10BITADDR_SLAVE:1;
+    volatile uint32_t IC_10BITADDR_MASTER:1;
+    volatile uint32_t IC_RESTART_EN:1;
+    volatile uint32_t IC_SLAVE_DISABLE:1;
+    volatile uint32_t RES:25;
+};
+
+struct IC_TAR {
+    volatile uint32_t IC_TAR:10;
+    volatile uint32_t GC_OR_START:1;
+    volatile uint32_t SPECIAL:1;
+    volatile uint32_t RES:20; 
+};
 
 struct I2cReg {
-    volatile uint32_t IC_CON;
-    volatile uint32_t IC_TAR;
+    volatile struct IC_CON IC_CON;
+    volatile struct IC_TAR IC_TAR;
     volatile uint32_t IC_SAR;
     volatile uint32_t IC_DATA_CMD;
     volatile uint32_t IC_SS_SCL_HCNT;
@@ -44,5 +61,12 @@ struct I2cReg {
     volatile uint32_t IC_FS_SPKLEN;
     volatile uint32_t IC_HS_SPKLEN;
 };
+
+enum I2Cmode {
+    MASTER=0,
+    SLAVE
+};
+
+void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave);
 
 #endif

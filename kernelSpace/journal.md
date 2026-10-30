@@ -100,6 +100,7 @@ TODO:
 **Драйвера (drivers/)**
 
 TODO:
+- PINMUX!!!
 - Уход от SBI (Реализовать таймер)
 
 (drivers/uart.c)
