@@ -46,8 +46,8 @@ struct UartReg {
 	volatile uint32_t DMASA;
 };
 
-void init_uart(uint64_t uartAddr, enum UARTmode mode);
-void uartWrite(uint64_t uartAddr, uint8_t symbol);
-uint8_t uartRead(uint64_t uartAddr); 
+void init_uart(uint64_t addr, enum UARTmode mode);
+void writeUart(uint64_t addr, uint8_t symbol);
+uint8_t readUart(uint64_t addr); 
 
 #endif

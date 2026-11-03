@@ -44,8 +44,8 @@ void init_uart(uint64_t uartAddr, enum UARTmode mode) {
 	};
 }
 
-void uartWrite(uint64_t uartAddr, uint8_t symbol) {
-	volatile struct UartReg *uart = (struct UartReg*)uartAddr;
+void writeUart(uint64_t addr, uint8_t symbol) {
+	volatile struct UartReg *uart = (struct UartReg*)addr;
 
 	while((((uart->LCR >> 7) & 0x1) != 0) && (!((uart->USR >> 1) & 0x1))) {}
 
@@ -54,8 +54,8 @@ void uartWrite(uint64_t uartAddr, uint8_t symbol) {
 	while(!((uart->USR >> 2) & 0x1)) {}
 }
 
-uint8_t uartRead(uint64_t uartAddr) {
-	volatile struct UartReg *uart = (struct UartReg*)uartAddr;
+uint8_t readUart(uint64_t addr) {
+	volatile struct UartReg *uart = (struct UartReg*)addr;
 	
 	while(!((uart->USR >> 3) & 0x1)) {}
 

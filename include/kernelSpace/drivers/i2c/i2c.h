@@ -2,6 +2,7 @@
 #define __I2C_H__
 
 #include "../mmio.h"
+#include "../../libc/string.h"
 
 struct IC_CON {
     volatile uint32_t MASTER_MODE:1;
@@ -20,16 +21,53 @@ struct IC_TAR {
     volatile uint32_t RES:20; 
 };
 
+struct IC_DATA_CMD {
+    volatile uint32_t DAT:8;
+    volatile uint32_t CMD:1;
+    volatile uint32_t STOP:1;
+    volatile uint32_t RESTART:1;
+    volatile uint32_t RES:21;
+};
+
+struct IC_STATUS {
+    volatile uint32_t ST_ACTIVITY:1;
+    volatile uint32_t ST_TFNF:1;
+    volatile uint32_t ST_TFE:1;
+    volatile uint32_t ST_RFNE:1;
+    volatile uint32_t ST_RFF:1;
+    volatile uint32_t ST_MST_ACTIVITY:1;
+    volatile uint32_t ST_SLV_ACTIVITY:1;
+    volatile uint32_t RES:25;
+};
+
+struct IC_INTR_STAT {
+    volatile uint32_t R_RX_UNDER:1;
+    volatile uint32_t R_RX_OVER:1;
+    volatile uint32_t R_RX_FULL:1;
+    volatile uint32_t R_TX_OVER:1;
+    volatile uint32_t R_TX_EMPTY:1;
+    volatile uint32_t R_RD_REQ:1;
+    volatile uint32_t R_TX_ABRT:1;
+    volatile uint32_t R_RX_DONE:1;
+    volatile uint32_t R_ACTIVITY:1;
+    volatile uint32_t R_STOP_DET:1;
+    volatile uint32_t R_START_DET:1;
+    volatile uint32_t R_GEN_CALL:1;
+    volatile uint32_t RES:20;
+};
+
 struct I2cReg {
     volatile struct IC_CON IC_CON;
     volatile struct IC_TAR IC_TAR;
     volatile uint32_t IC_SAR;
-    volatile uint32_t IC_DATA_CMD;
+    volatile uint32_t RES0;
+    volatile struct IC_DATA_CMD IC_DATA_CMD;
     volatile uint32_t IC_SS_SCL_HCNT;
     volatile uint32_t IC_SS_SCL_LCNT;
     volatile uint32_t IC_FS_SCL_HCNT;
     volatile uint32_t IC_FS_SCL_LCNT;
-    volatile uint32_t IC_INTR_STAT;
+    volatile uint32_t RES1[2];
+    volatile struct IC_INTR_STAT IC_INTR_STAT;
     volatile uint32_t IC_INTR_MASK;
     volatile uint32_t IC_RAW_INTR_STAT;
     volatile uint32_t IC_RX_TL;
@@ -46,7 +84,7 @@ struct I2cReg {
     volatile uint32_t IC_CLR_START_DET;
     volatile uint32_t IC_CLR_GEN_CALL;
     volatile uint32_t IC_ENABLE;
-    volatile uint32_t IC_STATUS;
+    volatile struct IC_STATUS IC_STATUS;
     volatile uint32_t IC_TXFLR;
     volatile uint32_t IC_RXFLR;
     volatile uint32_t IC_SDA_HOLD;
@@ -68,5 +106,7 @@ enum I2Cmode {
 };
 
 void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave);
+void writeI2c(uint64_t addr, uint8_t* data, uint64_t lenData);
+void readI2c(uint64_t addr, uint8_t* data);
 
 #endif

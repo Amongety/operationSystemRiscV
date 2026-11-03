@@ -1,6 +1,6 @@
 #include "../../include/kernelSpace/drivers/gpio/gpio.h"
 
-void initGPIO(uint64_t addr, uint64_t pin, uint8_t mode) {
+void init_GPIO(uint64_t addr, uint64_t pin, uint8_t mode) {
     volatile uint32_t* SWPORTA_DDR = (uint32_t*)(addr + OFFSET_GPIO_SWPORTA_DDR);
     volatile uint32_t* INT_POLARITY = (uint32_t*)(addr + OFFSET_GPIO_INT_POLARITY);
 

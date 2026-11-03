@@ -3,6 +3,68 @@
 #include "../include/kernelSpace/libsbi/te.h"
 #include "../include/kernelSpace/filesystem/fs.h"
 #include "../include/kernelSpace/drivers/gpio/gpio.h"
+#include "../include/kernelSpace/drivers/i2c/i2c.h"
+
+
+// Импульс на выводе Enable (EN)
+void lcdPulseEnable(char data) {
+	char t = data | 0x04;
+  writeI2c(globalDTB.i2c[1].addr, &t, 1);
+//   delayMicroseconds(1);
+	t = data & ~0x04;
+  writeI2c(globalDTB.i2c[1].addr, &t, 1);
+//   delayMicroseconds(50);
+}
+
+// Отправка 4 бит данных/команды
+void lcdSend4Bits(char nibble, char mode) {
+  char data = (nibble & 0xF0) | mode | 0x08;
+  writeI2c(globalDTB.i2c[1].addr, &data, 1);
+  lcdPulseEnable(data);
+}
+
+// Отправка полного байта (делится на 2 посылки по 4 бита)
+void lcdSendByte(char value, char mode) {
+  lcdSend4Bits(value & 0xF0, mode);
+  lcdSend4Bits((value << 4) & 0xF0, mode);
+}
+
+// Отправить команду (RS = 0)
+void lcdCommand(char cmd) {
+  lcdSendByte(cmd, 0);
+  if (cmd == 0x01 || cmd == 0x02) {
+	for(int i = 0; i < 200000; ++i) {};
+    // delay(2); // Команды очистки требуют больше времени
+  }
+}
+
+// Отправить символ/данные (RS = 1)
+void lcdData(char data) {
+  lcdSendByte(data, 0x01);
+}
+
+// Вывод строки
+void lcdPrint(const char* str) {
+  while (*str) {
+    lcdData(*str++);
+  }
+}
+
+// Установка курсора (колонка 0..19, строка 0..3)
+void lcdSetCursor(char col, char row) {
+  int row_offsets[] = {0x00, 0x40, 0x14, 0x54};
+  lcdCommand(0x80 | (col + row_offsets[row]));
+}
+
+#define PINMUX_I2C1_SDA 0x03001134UL
+#define PINMUX_I2C1_SCL 0x03001138UL
+
+void init_pinmux_i2c1(void) {
+    *(volatile uint32_t *)PINMUX_I2C1_SDA = 6;
+    *(volatile uint32_t *)PINMUX_I2C1_SCL = 6;
+}
+
+
 
 void main(struct DtbPlatform DTB) 
 {
@@ -63,7 +125,40 @@ void main(struct DtbPlatform DTB)
 
 	console_printf(globalDTB.uart[0].addr, "\r\nDONE INIT KERNEL\r\n");
 
-	/*initGPIO(globalDTB.gpio[0].addr, 29, GPIO_OUTPUT);
+	init_pinmux_i2c1();
+
+	init_i2c(globalDTB.i2c[1].addr, MASTER, 0x27); // 0x3F 0x27
+
+	lcdSend4Bits(0x30, 0);
+	// delay(5);
+	for(int i = 0; i < 500000; ++i) {};
+	lcdSend4Bits(0x30, 0);
+	// delayMicroseconds(150);
+	for(int i = 0; i < 150000; ++i) {};
+	lcdSend4Bits(0x30, 0);
+	lcdSend4Bits(0x20, 0); // Переход в 4-битный режим
+
+	lcdCommand(0x28); // 2 строки (для логики дисплея), 5x8 матрица
+	lcdCommand(0x0C); // Дисплей включен, курсор выключен
+	lcdCommand(0x06); // Автоинкремент курсора
+	lcdCommand(0x01); // Очистка дисплея
+	// delay(2);
+	for(int i = 0; i < 200000; ++i) {};
+
+	// Вывод текста по строкам для 2004 (20 символов, 4 строки)
+	lcdSetCursor(0, 0);
+	lcdPrint("Hello, LCD 2004!");
+	lcdSetCursor(0, 1);
+	lcdPrint("I2C without lib.");
+	lcdSetCursor(0, 2);
+	lcdPrint("Line 3: OK");
+	lcdSetCursor(0, 3);
+	lcdPrint("Line 4: Ready");
+	for(int i = 0; i < 5000000; ++i) {};
+
+	lcdCommand(0x01);
+
+	/*init_GPIO(globalDTB.gpio[0].addr, 29, GPIO_OUTPUT);
 	while(true) {
 		setGpio(globalDTB.gpio[0].addr, 29, 1);
 		console_printf(globalDTB.uart[0].addr, "Set 1\r\n");
