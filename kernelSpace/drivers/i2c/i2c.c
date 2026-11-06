@@ -43,7 +43,7 @@ void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave) {
             break;
     }
 
-    i2c->IC_INTR_MASK = 0;
+    i2c->IC_INTR_MASK = 0b111111111111;
 
     i2c->IC_RX_TL = 0;
     i2c->IC_TX_TL = 0;
@@ -64,38 +64,74 @@ void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave) {
 
 void writeI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
     volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+    struct IC_DATA_CMD settings = {0};
 
     i2c->IC_ENABLE = 1;
 
     for(int i = 0; i < lenData - 1; ++i) {
         // memset((void*)&i2c->IC_DATA_CMD, 0, sizeof(struct IC_DATA_CMD));
-        i2c->IC_DATA_CMD.DAT = data[i];
+        settings.DAT = data[i];
+        i2c->IC_DATA_CMD = settings;
         
-        while(i2c->IC_INTR_STAT.R_TX_EMPTY != 0) {};
-        console_printf(globalDTB.uart[0].addr, "Int0\r\n");
+        while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
+        // console_printf(globalDTB.uart[0].addr, "Int0\r\n");
     }
 
     // memset((void*)&i2c->IC_DATA_CMD, 0, sizeof(struct IC_DATA_CMD));
-    i2c->IC_DATA_CMD.DAT = data[lenData - 1];
-    i2c->IC_DATA_CMD.STOP = 1;
+    settings.DAT = data[lenData - 1];
+    settings.STOP = 1;
+    i2c->IC_DATA_CMD = settings;
 
-    while(i2c->IC_INTR_STAT.R_TX_EMPTY != 0) {};
-    console_printf(globalDTB.uart[0].addr, "Int1\r\n");
+    while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
+    // console_printf(globalDTB.uart[0].addr, "Int1\r\n");
 
     while(i2c->IC_STATUS.ST_MST_ACTIVITY != 0) {};
-    console_printf(globalDTB.uart[0].addr, "Int2\r\n");
+    // console_printf(globalDTB.uart[0].addr, "Int2\r\n");
 
     i2c->IC_ENABLE = 0;
 
-    console_printf(globalDTB.uart[0].addr, "Done\r\n");
+    // console_printf(globalDTB.uart[0].addr, "Done\r\n");
 }
 
-void readI2c(uint64_t addr, uint8_t* data) {
+void readI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
     volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+    struct IC_DATA_CMD settings = {.DAT=i2c->IC_DATA_CMD.DAT,.CMD=1};
 
     i2c->IC_ENABLE = 1;
 
+    for(int i = 0; i < lenData - 1; ++i) {
+        // settings.RESTART = 1;
+        i2c->IC_DATA_CMD = settings;
+        while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
 
+        while(i2c->IC_INTR_STAT.R_RX_FULL != 1) {};
+        data[i] = i2c->IC_DATA_CMD.DAT;
+    }
+    settings.RESTART = 0;
+    settings.STOP = 1;
+    i2c->IC_DATA_CMD = settings;
+    while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
+
+    while(i2c->IC_INTR_STAT.R_RX_FULL != 1) {};
+    data[lenData - 1] = i2c->IC_DATA_CMD.DAT;
+
+    while(i2c->IC_STATUS.ST_MST_ACTIVITY != 0) {};
 
     i2c->IC_ENABLE = 0;
+}
+
+void writeReadI2c(uint64_t addr, uint8_t* sAddr, uint64_t addrLen, uint8_t* rData, uint64_t rLen) {
+    if(addrLen != rLen) {
+        console_printf(globalDTB.uart[0].addr, "Error function 'writeReadI2c' Unequal\r\n");
+        return ;
+    }
+
+    volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+
+    for(int i = 0; i < addrLen; ++i) {
+        i2c->IC_TAR.IC_TAR = sAddr[i];
+
+        readI2c(addr, &(rData[i]), 1);
+    }
+    
 }

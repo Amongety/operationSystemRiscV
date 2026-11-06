@@ -127,9 +127,22 @@ void main(struct DtbPlatform DTB)
 
 	init_pinmux_i2c1();
 
-	init_i2c(globalDTB.i2c[1].addr, MASTER, 0x27); // 0x3F 0x27
+	init_i2c(globalDTB.i2c[1].addr, MASTER, 0x42); // 0x3F 0x27
 
-	lcdSend4Bits(0x30, 0);
+	uint8_t addr = 0x42 + 0x00;
+	uint8_t result = 0;
+
+	// readI2c(globalDTB.i2c[1].addr, &result, 1);
+	writeReadI2c(globalDTB.i2c[1].addr, &addr, 1, &result, 1);
+	console_printf(globalDTB.uart[0].addr, "ID = %x\r\n", result);
+
+	uint8_t reg[2] = {0x42 + 0x01, 0x42 + 0x01};
+	uint8_t data[2] = {0};
+	writeReadI2c(globalDTB.i2c[1].addr, reg, 1, data, 1);
+	uint16_t adc = ((uint16_t)data[0] << 8) | data[1];
+	console_printf(globalDTB.uart[0].addr, "ADC A0 = %d\r\n", adc);
+
+	/*lcdSend4Bits(0x30, 0);
 	// delay(5);
 	for(int i = 0; i < 500000; ++i) {};
 	lcdSend4Bits(0x30, 0);
@@ -157,6 +170,23 @@ void main(struct DtbPlatform DTB)
 	for(int i = 0; i < 5000000; ++i) {};
 
 	lcdCommand(0x01);
+
+	uint8_t tx = 0x00;
+    uint8_t rx = 0;
+
+    // Первый тест: P4 = 0
+    writeI2c(globalDTB.i2c[1].addr, &tx, 1);
+    readI2c(globalDTB.i2c[1].addr, &rx, 1);
+    console_printf(globalDTB.uart[0].addr, "\r\nTX = %x RX = %x\r\n", tx, rx);
+    if(rx & 0x10) console_printf(globalDTB.uart[0].addr, "TEST 1 FAILED\r\n");
+
+    // Второй тест: P4 = 1
+    tx = 0x10;
+    writeI2c(globalDTB.i2c[1].addr, &tx, 1);
+    readI2c(globalDTB.i2c[1].addr, &rx, 1);
+    console_printf(globalDTB.uart[0].addr, "TX = %x RX = %x\r\n", tx, rx);
+    if(rx & 0x10) console_printf(globalDTB.uart[0].addr, "I2C READ TEST OK\r\n");
+    else console_printf(globalDTB.uart[0].addr, "TEST 2 FAILED\r\n");*/
 
 	/*init_GPIO(globalDTB.gpio[0].addr, 29, GPIO_OUTPUT);
 	while(true) {

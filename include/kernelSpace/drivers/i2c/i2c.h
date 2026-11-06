@@ -107,6 +107,7 @@ enum I2Cmode {
 
 void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave);
 void writeI2c(uint64_t addr, uint8_t* data, uint64_t lenData);
-void readI2c(uint64_t addr, uint8_t* data);
+void readI2c(uint64_t addr, uint8_t* data, uint64_t lenData);
+void writeReadI2c(uint64_t addr, uint8_t* reg, uint64_t regLen, uint8_t* rData, uint64_t rLen);
 
 #endif
