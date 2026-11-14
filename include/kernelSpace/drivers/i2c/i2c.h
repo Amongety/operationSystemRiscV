@@ -56,6 +56,29 @@ struct IC_INTR_STAT {
     volatile uint32_t RES:20;
 };
 
+struct IC_ENABLE_STATUS {
+    volatile uint32_t IC_EN:1;
+    volatile uint32_t SLV_DISABLED_WHILE_BUSY:1;
+    volatile uint32_t SLV_RX_DATA_LOST:1;
+    volatile uint32_t RES:29;
+};
+
+struct IC_RAW_INTR_STAT {
+    volatile uint32_t IST_RX_UNDER:1; 
+    volatile uint32_t IST_RX_OVER:1;
+    volatile uint32_t IST_RX_FULL:1;
+    volatile uint32_t IST_TX_OVER:1;
+    volatile uint32_t IST_TX_EMPTY:1;
+    volatile uint32_t IST_RD_REQ:1;
+    volatile uint32_t IST_TX_ABRT:1;
+    volatile uint32_t IST_RX_DONE:1;
+    volatile uint32_t IST_ACTIVITY:1;
+    volatile uint32_t IST_STOP_DET:1;
+    volatile uint32_t IST_START_DET:1;
+    volatile uint32_t IST_GEN_CALL:1;
+    volatile uint32_t RES:20;
+};
+
 struct I2cReg {
     volatile struct IC_CON IC_CON;
     volatile struct IC_TAR IC_TAR;
@@ -69,7 +92,7 @@ struct I2cReg {
     volatile uint32_t RES1[2];
     volatile struct IC_INTR_STAT IC_INTR_STAT;
     volatile uint32_t IC_INTR_MASK;
-    volatile uint32_t IC_RAW_INTR_STAT;
+    volatile struct IC_RAW_INTR_STAT IC_RAW_INTR_STAT;
     volatile uint32_t IC_RX_TL;
     volatile uint32_t IC_TX_TL;
     volatile uint32_t IC_CLR_INTR;
@@ -95,7 +118,7 @@ struct I2cReg {
     volatile uint32_t IC_DMA_RDLR;
     volatile uint32_t IC_SDA_SETUP;
     volatile uint32_t IC_ACK_GENERAL_CALL;
-    volatile uint32_t IC_ENABLE_STATUS;
+    volatile struct IC_ENABLE_STATUS IC_ENABLE_STATUS;
     volatile uint32_t IC_FS_SPKLEN;
     volatile uint32_t IC_HS_SPKLEN;
 };
@@ -106,8 +129,9 @@ enum I2Cmode {
 };
 
 void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave);
+static void sendCommandI2c(uint64_t addr, struct IC_DATA_CMD cmd);
 void writeI2c(uint64_t addr, uint8_t* data, uint64_t lenData);
 void readI2c(uint64_t addr, uint8_t* data, uint64_t lenData);
-void writeReadI2c(uint64_t addr, uint8_t* reg, uint64_t regLen, uint8_t* rData, uint64_t rLen);
+void readRegI2c(uint64_t addr, uint8_t reg, uint8_t* rData, uint64_t rLen);
 
 #endif

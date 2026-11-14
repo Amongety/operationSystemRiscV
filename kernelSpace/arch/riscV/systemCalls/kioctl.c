@@ -24,13 +24,25 @@ void do_ioctl(uint64_t device, uint64_t op, void* arg) {
         case 5 ... 9:                                                               // GPIO
         {
             uint64_t* pin = (uint64_t*)arg;
-            uint64_t* mode = ((uint64_t*)arg) + 1;
-            uint64_t* value = ((uint64_t*)arg) + 2;
+            uint64_t* modeOrValue = ((uint64_t*)arg) + 1;
 
-            if(op == 0) init_GPIO(globalDTB.gpio[device - 5].addr, *pin, *mode);
-            else if(op == 1) setGpio(globalDTB.gpio[device - 5].addr, *pin, *value);
-            else if(op == 2) *value = getGpio(globalDTB.gpio[device - 5].addr, *pin);
+            if(op == 0) init_GPIO(globalDTB.gpio[device - 5].addr, *pin, *modeOrValue);
+            else if(op == 1) setGpio(globalDTB.gpio[device - 5].addr, *pin, *modeOrValue);
+            else if(op == 2) *modeOrValue = getGpio(globalDTB.gpio[device - 5].addr, *pin);
             
+            break;
+        }
+        case 10 ... 14:                                                             // I2C
+        {
+            uint64_t* modeOrBufOrReg = ((uint64_t*)arg);
+            uint64_t* addrOrLenDataOrRData = ((uint64_t*)arg) + 1;
+            uint64_t* rLen = ((uint64_t*)arg) + 2;
+
+            if(op == 0) init_i2c(globalDTB.i2c[device - 10].addr, *modeOrBufOrReg, *addrOrLenDataOrRData);
+            else if(op == 1) writeI2c(globalDTB.i2c[device - 10].addr, (uint8_t*)*modeOrBufOrReg, *addrOrLenDataOrRData);
+            else if(op == 2) readI2c(globalDTB.i2c[device - 10].addr, (uint8_t*)*modeOrBufOrReg, *addrOrLenDataOrRData);
+            else if(op == 3) readRegI2c(globalDTB.i2c[device - 10].addr, *modeOrBufOrReg, (uint8_t*)*addrOrLenDataOrRData, *rLen);
+
             break;
         }
     }

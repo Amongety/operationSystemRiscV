@@ -75,6 +75,7 @@ init_virtual_memory:
 	li a3, 0x6 | 0xC0
 	call id_map_page_range
 
+	/* PINMUX */
 	ld a0, 0(sp)
 	la a1, 0x03001000
 	la a2, 0x03002000

@@ -47,19 +47,13 @@ void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave) {
 
     i2c->IC_RX_TL = 0;
     i2c->IC_TX_TL = 0;
+}
 
-    // i2c->IC_ENABLE = 1;
-
-    console_printf(globalDTB.uart[0].addr, "IC_CON = %x\r\nIC_SLAVE_DISABLE = %d\r\nIC_TAR = %x\r\nIC_SS_SCL_HCNT = %d\r\nIC_SS_SCL_LCNT = %d\r\nIC_ENABLE = %x\r\nIC_STATUS = %x\r\nIC_ENABLE_STATUS = %x\r\n", *(uint32_t*)&i2c->IC_CON, i2c->IC_CON.IC_SLAVE_DISABLE, (uint32_t)i2c->IC_TAR.IC_TAR, i2c->IC_SS_SCL_HCNT, i2c->IC_SS_SCL_LCNT, i2c->IC_ENABLE, i2c->IC_STATUS, i2c->IC_ENABLE_STATUS);
-
-    /*for(int i = 0; i < 100000; ++i) {
-        if(i2c->IC_ENABLE_STATUS & 1) {
-            console_printf(globalDTB.uart[0].addr, "Sucsesfull init i2c\n\r");
-            break;
-        }
-    }
-
-    if(!(i2c->IC_ENABLE_STATUS & 1)) console_printf(globalDTB.uart[0].addr, "ERROR???\n\r");*/
+static void sendCommandI2c(uint64_t addr, struct IC_DATA_CMD cmd) {
+    volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+    
+    i2c->IC_DATA_CMD = cmd;
+    while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
 }
 
 void writeI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
@@ -69,69 +63,74 @@ void writeI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
     i2c->IC_ENABLE = 1;
 
     for(int i = 0; i < lenData - 1; ++i) {
-        // memset((void*)&i2c->IC_DATA_CMD, 0, sizeof(struct IC_DATA_CMD));
         settings.DAT = data[i];
-        i2c->IC_DATA_CMD = settings;
-        
-        while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
-        // console_printf(globalDTB.uart[0].addr, "Int0\r\n");
+        sendCommandI2c(addr, settings);
     }
 
-    // memset((void*)&i2c->IC_DATA_CMD, 0, sizeof(struct IC_DATA_CMD));
     settings.DAT = data[lenData - 1];
     settings.STOP = 1;
-    i2c->IC_DATA_CMD = settings;
-
-    while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
-    // console_printf(globalDTB.uart[0].addr, "Int1\r\n");
+    sendCommandI2c(addr, settings);
 
     while(i2c->IC_STATUS.ST_MST_ACTIVITY != 0) {};
-    // console_printf(globalDTB.uart[0].addr, "Int2\r\n");
-
     i2c->IC_ENABLE = 0;
-
-    // console_printf(globalDTB.uart[0].addr, "Done\r\n");
 }
 
 void readI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
     volatile struct I2cReg *i2c = (struct I2cReg*)addr;
-    struct IC_DATA_CMD settings = {.DAT=i2c->IC_DATA_CMD.DAT,.CMD=1};
+    struct IC_DATA_CMD settings = {.CMD=1};
+    uint64_t rxLen = 0, txLen = 0;
 
     i2c->IC_ENABLE = 1;
 
-    for(int i = 0; i < lenData - 1; ++i) {
-        // settings.RESTART = 1;
-        i2c->IC_DATA_CMD = settings;
-        while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
+    while(rxLen < lenData) {
+        while((i2c->IC_STATUS.ST_TFNF != 0) && (rxLen < lenData)) {
+            settings.STOP = (rxLen == (lenData - 1)) ? 1:0;
+            sendCommandI2c(addr, settings);
 
-        while(i2c->IC_INTR_STAT.R_RX_FULL != 1) {};
-        data[i] = i2c->IC_DATA_CMD.DAT;
+            ++rxLen;
+        }
+
+        while(txLen < rxLen) {
+            while(i2c->IC_INTR_STAT.R_RX_FULL != 1) {};
+            data[txLen] = i2c->IC_DATA_CMD.DAT;
+            
+            ++txLen;
+        }
     }
-    settings.RESTART = 0;
-    settings.STOP = 1;
-    i2c->IC_DATA_CMD = settings;
-    while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
-
-    while(i2c->IC_INTR_STAT.R_RX_FULL != 1) {};
-    data[lenData - 1] = i2c->IC_DATA_CMD.DAT;
 
     while(i2c->IC_STATUS.ST_MST_ACTIVITY != 0) {};
-
     i2c->IC_ENABLE = 0;
 }
 
-void writeReadI2c(uint64_t addr, uint8_t* sAddr, uint64_t addrLen, uint8_t* rData, uint64_t rLen) {
-    if(addrLen != rLen) {
-        console_printf(globalDTB.uart[0].addr, "Error function 'writeReadI2c' Unequal\r\n");
-        return ;
-    }
-
+void readRegI2c(uint64_t addr, uint8_t reg, uint8_t* rData, uint64_t rLen) {
     volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+    struct IC_DATA_CMD settings = {.CMD=0,.DAT=reg,.RESTART=1};
+    uint64_t rxLen = 0, txLen = 0;
 
-    for(int i = 0; i < addrLen; ++i) {
-        i2c->IC_TAR.IC_TAR = sAddr[i];
-
-        readI2c(addr, &(rData[i]), 1);
-    }
+    i2c->IC_ENABLE = 1;
     
+    sendCommandI2c(addr, settings);
+
+    settings.DAT = 0;
+    settings.CMD = 1;
+    settings.RESTART = 0;
+
+    while(rxLen < rLen) {
+        while((i2c->IC_STATUS.ST_TFNF != 0) && (rxLen < rLen)) {
+            settings.STOP = (rxLen == (rLen - 1)) ? 1:0;
+            sendCommandI2c(addr, settings);
+
+            ++rxLen;
+        }
+
+        while(txLen < rxLen) {
+            while(i2c->IC_INTR_STAT.R_RX_FULL != 1) {};
+            rData[txLen] = i2c->IC_DATA_CMD.DAT;
+            
+            ++txLen;
+        }
+    }
+
+    while(i2c->IC_STATUS.ST_MST_ACTIVITY != 0) {};
+    i2c->IC_ENABLE = 0;
 }

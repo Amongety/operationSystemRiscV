@@ -4,6 +4,7 @@
 #include "../drivers/gpio/gpio.h"
 #include "../drivers/sdmmc/sdmmc.h"
 #include "../drivers/uart/uart.h"
+#include "../drivers/i2c/i2c.h"
 
 void do_ioctl(uint64_t device, uint64_t op, void* arg);
 
