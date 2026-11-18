@@ -1,7 +1,6 @@
 #ifndef __ALLOC_H__
 #define __ALLOC_H__
 
-#include <stdbool.h>
 #include "../../../debug/kdebug.h"
 #include "../../../libc/string.h"
 

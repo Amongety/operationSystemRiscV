@@ -44,8 +44,8 @@ bool sdSendCMD(volatile struct SdmmcReg *sdmmc, uint32_t cmd, uint32_t argument)
 	return true;
 }
 
-bool init_sdmmc(uint64_t addr) {
-	volatile struct SdmmcReg* sdmmc = (struct SdmmcReg*)addr;
+bool init_sdmmc(struct SdCard *sdmmcInfo) {
+	volatile struct SdmmcReg* sdmmc = (struct SdmmcReg*)sdmmcInfo->addr;
 
     sdSetClock(sdmmc, 0x80);
 	for(int i = 0; i < 1000; ++i) {}
@@ -61,7 +61,7 @@ bool init_sdmmc(uint64_t addr) {
     sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(8), 0x1AA);
 
     if((sdmmc->RESP31_0 & 0x1FF) != 0x1AA) {
-        console_printf(globalDTB.uart[0].addr, "CMD8 FAIL: %x\r\n", sdmmc->RESP31_0);
+        console_printf(&globalDTB.uart[0], "CMD8 FAIL: %x\r\n", sdmmc->RESP31_0);
         return false;
     }
 
@@ -101,13 +101,13 @@ bool init_sdmmc(uint64_t addr) {
 
 	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(13), RCA << 16);
 	if(((sdmmc->RESP31_0 >> 9) & 0xF) != 4) {
-		console_printf(globalDTB.uart[0].addr, "CMD13 fail:\r\nCMD13 RESP = %x\r\nSTATE = %d\r\n", sdmmc->RESP31_0, (sdmmc->RESP31_0 >> 9) & 0xF);
+		console_printf(&globalDTB.uart[0], "CMD13 fail:\r\nCMD13 RESP = %x\r\nSTATE = %d\r\n", sdmmc->RESP31_0, (sdmmc->RESP31_0 >> 9) & 0xF);
 		return false;
 	}
 
 	sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(55), RCA << 16);
 	if(!sdSendCMD(sdmmc, RESP_TYPE_SEL(2) | CMD_CRC_CHK_ENABLE | CMD_IDX_CHK_ENABLE | CMD_IDX(6), 0x2)) {
-		console_printf(globalDTB.uart[0].addr, "ACMD6 FAIL 1 bit\r\n");
+		console_printf(&globalDTB.uart[0], "ACMD6 FAIL 1 bit\r\n");
 	}
 	else {
 		sdmmc->HOST_CTL1_PWR_BG_WUP |= DAT_XFER_WIDTH;
@@ -121,11 +121,11 @@ bool init_sdmmc(uint64_t addr) {
     return true;
 }
 
-bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void *buff, uint64_t size) {
+bool writeSDMMC(struct SdCard *sdmmcInfo, enum TransferMode type, uint64_t index, void *buff, uint64_t size) {
 	uint32_t blocks = (size + 511) / BLOCK_BYTE;
 	if(index + blocks > blockCountSD) return false;
 
-	volatile struct SdmmcReg* sdmmcInit = (struct SdmmcReg*)sdmmcAddr;
+	volatile struct SdmmcReg* sdmmcInit = (struct SdmmcReg*)sdmmcInfo->addr;
 
 	switch(type) {
 		case NONDMA: {
@@ -174,11 +174,11 @@ bool writeSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void
 	return true;
 }
 
-bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void *buff, uint64_t size) {
+bool readSDMMC(struct SdCard *sdmmcInfo, enum TransferMode type, uint64_t index, void *buff, uint64_t size) {
 	uint32_t blocks = (size + 511) / BLOCK_BYTE;
 	if(index + blocks > blockCountSD) return false;
 
-	volatile struct SdmmcReg* sdmmcInit = (struct SdmmcReg*)sdmmcAddr;
+	volatile struct SdmmcReg* sdmmcInit = (struct SdmmcReg*)sdmmcInfo->addr;
 
 	switch(type) {
 		case NONDMA: {
@@ -230,20 +230,20 @@ bool readSDMMC(uint64_t sdmmcAddr, enum TransferMode type, uint64_t index, void 
 
 bool errSDMMC(volatile struct SdmmcReg* sdmmcInit, const char* typeFail, uint32_t cmd) {
 	if(sdmmcInit->NORM_AND_ERR_INT_STS & ERR_INT_STS_ERR_MASK) {
-		console_printf(globalDTB.uart[0].addr, "Error SD_CARD: \'%s\' CMD/ACMD = %d\r\n", typeFail, GET_CMD_IDX(cmd));
-		console_printf(globalDTB.uart[0].addr, "RESPONSE:\r\nRESP31_0:%x\r\nRESP63_32:%x\r\nRESP95_64:%x\r\nRESP127_96:%x\r\n", sdmmcInit->RESP31_0, sdmmcInit->RESP63_32, sdmmcInit->RESP95_64, sdmmcInit->RESP127_96);
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_TOUT_ERR) console_printf(globalDTB.uart[0].addr, "CMD Timeout Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_CRC_ERR) console_printf(globalDTB.uart[0].addr, "CMD CRC Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_ENDBIT_ERR) console_printf(globalDTB.uart[0].addr, "CMD End Bit Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_IDX_ERR) console_printf(globalDTB.uart[0].addr, "CMD Index Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & DAT_TOUT_ERR) console_printf(globalDTB.uart[0].addr, "DATA Timeout Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & DAT_CRC_ERR) console_printf(globalDTB.uart[0].addr, "DATA CRC Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & DAT_ENDBIT_ERR) console_printf(globalDTB.uart[0].addr, "DATA End Bit Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & CURR_LIMIT_ERR) console_printf(globalDTB.uart[0].addr, "DATA Limit Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & AUTO_CMD_ERR) console_printf(globalDTB.uart[0].addr, "Auto CMD Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & ADMA_ERR) console_printf(globalDTB.uart[0].addr, "ADMA Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & TUNE_ERR) console_printf(globalDTB.uart[0].addr, "Tuning Error\r\n");
-		if(sdmmcInit->NORM_AND_ERR_INT_STS & BOOT_ACK_ERR) console_printf(globalDTB.uart[0].addr, "Boot Ack Error\r\n");
+		console_printf(&globalDTB.uart[0], "Error SD_CARD: \'%s\' CMD/ACMD = %d\r\n", typeFail, GET_CMD_IDX(cmd));
+		console_printf(&globalDTB.uart[0], "RESPONSE:\r\nRESP31_0:%x\r\nRESP63_32:%x\r\nRESP95_64:%x\r\nRESP127_96:%x\r\n", sdmmcInit->RESP31_0, sdmmcInit->RESP63_32, sdmmcInit->RESP95_64, sdmmcInit->RESP127_96);
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_TOUT_ERR) console_printf(&globalDTB.uart[0], "CMD Timeout Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_CRC_ERR) console_printf(&globalDTB.uart[0], "CMD CRC Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_ENDBIT_ERR) console_printf(&globalDTB.uart[0], "CMD End Bit Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & CMD_IDX_ERR) console_printf(&globalDTB.uart[0], "CMD Index Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & DAT_TOUT_ERR) console_printf(&globalDTB.uart[0], "DATA Timeout Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & DAT_CRC_ERR) console_printf(&globalDTB.uart[0], "DATA CRC Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & DAT_ENDBIT_ERR) console_printf(&globalDTB.uart[0], "DATA End Bit Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & CURR_LIMIT_ERR) console_printf(&globalDTB.uart[0], "DATA Limit Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & AUTO_CMD_ERR) console_printf(&globalDTB.uart[0], "Auto CMD Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & ADMA_ERR) console_printf(&globalDTB.uart[0], "ADMA Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & TUNE_ERR) console_printf(&globalDTB.uart[0], "Tuning Error\r\n");
+		if(sdmmcInit->NORM_AND_ERR_INT_STS & BOOT_ACK_ERR) console_printf(&globalDTB.uart[0], "Boot Ack Error\r\n");
 		
 		sdmmcInit->NORM_AND_ERR_INT_STS = sdmmcInit->NORM_AND_ERR_INT_STS;
 		sdmmcInit->CLK_CTL_SWRST |= (1U << 25) | (1U << 26);

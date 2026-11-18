@@ -1,7 +1,7 @@
 #ifndef __UART_H__
 #define __UART_H__
 
-#include <stdint.h>
+#include "../mmio.h"
 
 enum UARTmode {
 	queryMode = 0,
@@ -46,8 +46,8 @@ struct UartReg {
 	volatile uint32_t DMASA;
 };
 
-void init_uart(uint64_t addr, enum UARTmode mode);
-void writeUart(uint64_t addr, uint8_t symbol);
-uint8_t readUart(uint64_t addr); 
+void init_uart(struct Uart *uartInfo, enum UARTmode mode);
+void writeUart(struct Uart *uartInfo, uint8_t symbol);
+uint8_t readUart(struct Uart *uartInfo); 
 
 #endif

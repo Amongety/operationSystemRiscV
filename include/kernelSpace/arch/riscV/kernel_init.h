@@ -2,8 +2,6 @@
 #define __KERNEL_INIT_H__
 
 #include "htrap.h"
-#include "../../../bootloader/DTB/platformDevices.h"
-#include "../../drivers/sdmmc/sdmmc.h"
 
 struct DtbPlatform globalDTB;
 

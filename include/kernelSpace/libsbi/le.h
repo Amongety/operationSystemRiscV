@@ -3,7 +3,7 @@
 #ifndef __LE_H__
 #define __LE_H__
 
-#include "../config.h"
+#include <stdint.h>
 #include "sbi.h"
 
 // 1s: stime_value = 10000000

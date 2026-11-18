@@ -24,20 +24,13 @@ int bmp280_init(uint64_t addr, uint64_t addrSlave, struct BMP280* bmp);
 int bmp280_read(uint64_t addr, struct BMP280* bmp, int32_t* temperature, uint32_t* pressure);
 
 #define LCD2004A_ADDR 0x27
-// Импульс на выводе Enable (EN)
-void lcdPulseEnable(uint64_t addr, char data);
-// Отправка 4 бит данных/команды
-void lcdSend4Bits(uint64_t addr, char nibble, char mode);
-// Отправка полного байта (делится на 2 посылки по 4 бита)
-void lcdSendByte(uint64_t addr, char value, char mode);
-// Отправить команду (RS = 0)
-void lcdCommand(uint64_t addr, char cmd);
-// Отправить символ/данные (RS = 1)
-void lcdData(uint64_t addr, char data);
-// Вывод строки
-void lcdPrint(uint64_t addr, const char* str);
-// Установка курсора (колонка 0..19, строка 0..3)
-void lcdSetCursor(uint64_t addr, char col, char row);
+void lcdPulseEnable(uint64_t addr, char data); // Импульс на выводе Enable (EN)
+void lcdSend4Bits(uint64_t addr, char nibble, char mode); // Отправка 4 бит данных/команды
+void lcdSendByte(uint64_t addr, char value, char mode); // Отправка полного байта (делится на 2 посылки по 4 бита)
+void lcdCommand(uint64_t addr, char cmd); // Отправить команду (RS = 0)
+void lcdData(uint64_t addr, char data); // Отправить символ/данные (RS = 1)
+void lcdPrint(uint64_t addr, const char* str); // Вывод строки
+void lcdSetCursor(uint64_t addr, char col, char row); // Установка курсора (колонка 0..19, строка 0..3)
 
 #define SIZE 1000
 int myarray[SIZE];
@@ -45,7 +38,7 @@ int another_array[5] = {1, 2, 3, 4, 5};
 
 int main() {
     /* AHT20 */
-    int ret = aht20_init(DEVICE_I2C1, AHT20_ADDR);
+    /*int ret = aht20_init(DEVICE_I2C1, AHT20_ADDR);
 	printfUART(DEVICE_UART0, "AHT20 init: %d\r\n", ret);
 	if(ret == 0) {
 		int32_t temperature;
@@ -54,10 +47,10 @@ int main() {
 		ret = aht20_read(DEVICE_I2C1, &temperature, &humidity);
 		if(ret == 0) printfUART(DEVICE_UART0, "AHT20 T*100 = %d, RH*100 = %d\r\n", temperature, humidity);
 		else printfUART(DEVICE_UART0, "AHT20 read error: %d\r\n", ret);
-	}
+	}*/
 
     /* BMP280 */
-    struct BMP280 bmp;
+    /*struct BMP280 bmp;
 	ret = bmp280_init(DEVICE_I2C1, BMP280_ADDR, &bmp);
 	printfUART(DEVICE_UART0, "BMP280 INIT = %d\r\n", ret);
 
@@ -69,10 +62,10 @@ int main() {
 
 		if(ret == 0) printfUART(DEVICE_UART0, "BMP280 TEMP*100 = %d\r\n""BMP280 PRESSURE = %d Pa\r\n", temperature, pressure);
 		else printfUART(DEVICE_UART0, "BMP280 READ ERROR = %d\r\n", ret);
-	}
+	}*/
 
     /* LCD 2400A */
-    /*struct I2cArg i2c = {.mode=MASTER,.addr=LCD2004A_ADDR};
+    struct I2cArg i2c = {.mode=MASTER,.addr=LCD2004A_ADDR};
     ioctl(DEVICE_I2C1, I2C_SET_MODE, (void*)&i2c);
 	lcdSend4Bits(DEVICE_I2C1, 0x30, 0);
 	// delay(5);
@@ -113,7 +106,7 @@ int main() {
     ioctl(DEVICE_I2C1, I2C_READ_REG, (void*)&i2c);
     printfUART(DEVICE_UART0, "TX = %x RX = %x\r\n", tx, rx);
     if(rx & 0x10) printfUART(DEVICE_UART0, "I2C READ TEST OK\r\n");
-    else printfUART(DEVICE_UART0, "TEST 2 FAILED\r\n");*/
+    else printfUART(DEVICE_UART0, "TEST 2 FAILED\r\n");
 
     /* GPIO */
 	struct GpioArg gpio = {.pin=28,.mode=GPIO_OUTPUT};
@@ -385,8 +378,7 @@ int bmp280_init(uint64_t addr, uint64_t addrSlave, struct BMP280* bmp) {
     return 0;
 }
 
-int bmp280_read(uint64_t addr, struct BMP280* bmp, int32_t* temperature, uint32_t* pressure)
-{
+int bmp280_read(uint64_t addr, struct BMP280* bmp, int32_t* temperature, uint32_t* pressure) {
     if(!bmp || !temperature || !pressure) return -1;
 
     // Читаем 6 байтов начиная с 0xF7

@@ -1,8 +1,6 @@
 #ifndef __DTB_H__
 #define __DTB_H__
 
-#include <stdint.h>
-#include <stdbool.h>
 #include "../../kernelSpace/libsbi/le.h"
 #include "../../kernelSpace/libc/byteOrder.h"
 #include "../../kernelSpace/libc/string.h"

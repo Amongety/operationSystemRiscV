@@ -1,9 +1,6 @@
 #ifndef __PROCESS_CONTROL_H__
 #define __PROCESS_CONTROL_H__
 
-#include <stddef.h>
-#include "../arch/riscV/memory/mmu.h"
-#include "../../bootloader/DTB/platformDevices.h"
 #include "elf.h"
 
 #define PROCESS_MAX 8
@@ -19,8 +16,6 @@ extern unsigned char _text_start[];
 extern unsigned char _text_end[];
 extern unsigned char _rodata_start[];
 extern unsigned char _rodata_end[];
-
-extern struct DtbPlatform globalDTB;
 
 struct scause_t {
 	uint64_t exceptCode:63;

@@ -1,7 +1,7 @@
-#include "../../include/kernelSpace/drivers/i2c/i2c.h"
+#include "../../../include/kernelSpace/drivers/i2c/i2c.h"
 
-void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave) {
-    volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+void init_i2c(struct I2C *i2cInfo, enum I2Cmode mode, uint64_t addrSlave) {
+    volatile struct I2cReg *i2c = (struct I2cReg*)i2cInfo->addr;
 
     i2c->IC_ENABLE = 0;
 
@@ -56,27 +56,27 @@ static void sendCommandI2c(uint64_t addr, struct IC_DATA_CMD cmd) {
     while(i2c->IC_INTR_STAT.R_TX_EMPTY != 1) {};
 }
 
-void writeI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
-    volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+void writeI2c(struct I2C *i2cInfo, uint8_t* data, uint64_t lenData) {
+    volatile struct I2cReg *i2c = (struct I2cReg*)i2cInfo->addr;
     struct IC_DATA_CMD settings = {0};
 
     i2c->IC_ENABLE = 1;
 
     for(int i = 0; i < lenData - 1; ++i) {
         settings.DAT = data[i];
-        sendCommandI2c(addr, settings);
+        sendCommandI2c(i2cInfo->addr, settings);
     }
 
     settings.DAT = data[lenData - 1];
     settings.STOP = 1;
-    sendCommandI2c(addr, settings);
+    sendCommandI2c(i2cInfo->addr, settings);
 
     while(i2c->IC_STATUS.ST_MST_ACTIVITY != 0) {};
     i2c->IC_ENABLE = 0;
 }
 
-void readI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
-    volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+void readI2c(struct I2C *i2cInfo, uint8_t* data, uint64_t lenData) {
+    volatile struct I2cReg *i2c = (struct I2cReg*)i2cInfo->addr;
     struct IC_DATA_CMD settings = {.CMD=1};
     uint64_t rxLen = 0, txLen = 0;
 
@@ -85,7 +85,7 @@ void readI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
     while(rxLen < lenData) {
         while((i2c->IC_STATUS.ST_TFNF != 0) && (rxLen < lenData)) {
             settings.STOP = (rxLen == (lenData - 1)) ? 1:0;
-            sendCommandI2c(addr, settings);
+            sendCommandI2c(i2cInfo->addr, settings);
 
             ++rxLen;
         }
@@ -102,14 +102,14 @@ void readI2c(uint64_t addr, uint8_t* data, uint64_t lenData) {
     i2c->IC_ENABLE = 0;
 }
 
-void readRegI2c(uint64_t addr, uint8_t reg, uint8_t* rData, uint64_t rLen) {
-    volatile struct I2cReg *i2c = (struct I2cReg*)addr;
+void readRegI2c(struct I2C *i2cInfo, uint8_t reg, uint8_t* rData, uint64_t rLen) {
+    volatile struct I2cReg *i2c = (struct I2cReg*)i2cInfo->addr;
     struct IC_DATA_CMD settings = {.CMD=0,.DAT=reg,.RESTART=1};
     uint64_t rxLen = 0, txLen = 0;
 
     i2c->IC_ENABLE = 1;
     
-    sendCommandI2c(addr, settings);
+    sendCommandI2c(i2cInfo->addr, settings);
 
     settings.DAT = 0;
     settings.CMD = 1;
@@ -118,7 +118,7 @@ void readRegI2c(uint64_t addr, uint8_t reg, uint8_t* rData, uint64_t rLen) {
     while(rxLen < rLen) {
         while((i2c->IC_STATUS.ST_TFNF != 0) && (rxLen < rLen)) {
             settings.STOP = (rxLen == (rLen - 1)) ? 1:0;
-            sendCommandI2c(addr, settings);
+            sendCommandI2c(i2cInfo->addr, settings);
 
             ++rxLen;
         }

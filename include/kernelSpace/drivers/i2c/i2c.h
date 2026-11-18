@@ -2,7 +2,6 @@
 #define __I2C_H__
 
 #include "../mmio.h"
-#include "../../libc/string.h"
 
 struct IC_CON {
     volatile uint32_t MASTER_MODE:1;
@@ -128,10 +127,10 @@ enum I2Cmode {
     SLAVE
 };
 
-void init_i2c(uint64_t addr, enum I2Cmode mode, uint64_t addrSlave);
+void init_i2c(struct I2C *i2cInfo, enum I2Cmode mode, uint64_t addrSlave);
 static void sendCommandI2c(uint64_t addr, struct IC_DATA_CMD cmd);
-void writeI2c(uint64_t addr, uint8_t* data, uint64_t lenData);
-void readI2c(uint64_t addr, uint8_t* data, uint64_t lenData);
-void readRegI2c(uint64_t addr, uint8_t reg, uint8_t* rData, uint64_t rLen);
+void writeI2c(struct I2C *i2cInfo, uint8_t* data, uint64_t lenData);
+void readI2c(struct I2C *i2cInfo, uint8_t* data, uint64_t lenData);
+void readRegI2c(struct I2C *i2cInfo, uint8_t reg, uint8_t* rData, uint64_t rLen);
 
 #endif

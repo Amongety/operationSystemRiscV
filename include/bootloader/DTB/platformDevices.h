@@ -32,6 +32,4 @@ struct DtbPlatform {
 	struct I2C i2c[I2C_MAX];
 };
 
-extern struct DtbPlatform dtbPlt;
-
 #endif

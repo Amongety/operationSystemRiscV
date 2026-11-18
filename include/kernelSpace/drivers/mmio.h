@@ -1,10 +1,11 @@
 #ifndef __MMIO_H__
 #define __MMIO_H__
 
-#ifndef __ASSEMBLER__
-	#include <stdint.h>
-	#include <stdbool.h>
-	#include "../debug/kdebug.h"
-#endif
+#include <stdint.h>
+#include <stdbool.h>
+#include "../../bootloader/DTB/platformDevices.h"
+#include "../debug/kdebug.h"
+
+extern struct DtbPlatform globalDTB;
 
 #endif

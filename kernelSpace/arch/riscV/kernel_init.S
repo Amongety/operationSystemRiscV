@@ -1,5 +1,3 @@
-#include "../../../include/kernelSpace/drivers/mmio.h"
-
 .section .text
 .global kernel_init
 kernel_init:

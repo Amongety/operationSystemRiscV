@@ -1,9 +1,5 @@
 #include "../include/kernelSpace/config.h"
 #include "../include/kernelSpace/arch/riscV/kernel_init.h"
-#include "../include/kernelSpace/libsbi/te.h"
-#include "../include/kernelSpace/filesystem/fs.h"
-#include "../include/kernelSpace/drivers/gpio/gpio.h"
-#include "../include/kernelSpace/drivers/i2c/i2c.h"
 
 #define PINMUX_GPIO_A16 0x03001040
 #define PINMUX_GPIO_A17 0x03001044
@@ -48,7 +44,6 @@ void init_pinmux_i2c1(void) {
 
 
 
-
 void main(struct DtbPlatform DTB) 
 {
 	globalDTB = DTB;
@@ -57,59 +52,52 @@ void main(struct DtbPlatform DTB)
 
 	init_virtual_memory(root_page_table);
 	
-	init_uart(queryMode, globalDTB.uart[0].addr);
-	if(!init_sdmmc(globalDTB.sd.addr)) PANIC("Error init SD-CARD");
+	// init_uart(&globalDTB.uart[0], queryMode);		// СРОЧНЫЙ ФИКС!
+	if(!init_sdmmc(&globalDTB.sd)) PANIC("Error init SD-CARD");
 	
 	fsInitMinix3();
 
-	console_printf(globalDTB.uart[0].addr, "Text %x %x\r\n", _text_start, _text_end);
-	console_printf(globalDTB.uart[0].addr, "Rodata %x %x\r\n", _rodata_start, _rodata_end);
-	console_printf(globalDTB.uart[0].addr, "Data %x %x\r\n", _data_start, _data_end);
-	console_printf(globalDTB.uart[0].addr, "Bss %x %x\r\n", _bss_start, _bss_end);
-	console_printf(globalDTB.uart[0].addr, "Stack %x %x\r\n", _stack - 128 * 1024, _stack);
-	console_printf(globalDTB.uart[0].addr, "FreeRam %x %x\r\n", _free_ram_start, _free_ram_end);
+	console_printf(&globalDTB.uart[0], "Text %x %x\r\n", _text_start, _text_end);
+	console_printf(&globalDTB.uart[0], "Rodata %x %x\r\n", _rodata_start, _rodata_end);
+	console_printf(&globalDTB.uart[0], "Data %x %x\r\n", _data_start, _data_end);
+	console_printf(&globalDTB.uart[0], "Bss %x %x\r\n", _bss_start, _bss_end);
+	console_printf(&globalDTB.uart[0], "Stack %x %x\r\n", _stack - 128 * 1024, _stack);
+	console_printf(&globalDTB.uart[0], "FreeRam %x %x\r\n", _free_ram_start, _free_ram_end);
 
-	console_printf(globalDTB.uart[0].addr, "Hello debug SBI!\r\n");
+	console_printf(&globalDTB.uart[0], "Hello debug SBI!\r\n");
 
-	for(int i = 0; i < UART_MAX; ++i) console_printf(globalDTB.uart[0].addr, "UART%d. Addr: %x. Size: %x\r\n", i, globalDTB.uart[i].addr, globalDTB.uart[i].size);
-	console_printf(globalDTB.uart[0].addr, "SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
-	for(int i = 0; i < GPIO_MAX; ++i) console_printf(globalDTB.uart[0].addr, "GPIO%d. Addr: %x. Size: %x\r\n", i, globalDTB.gpio[i].addr, globalDTB.gpio[i].size);
-	for(int i = 0; i < I2C_MAX; ++i) console_printf(globalDTB.uart[0].addr, "I2C%d. Addr: %x. Size: %x\r\n", i, globalDTB.i2c[i].addr, globalDTB.i2c[i].size);
+	for(int i = 0; i < UART_MAX; ++i) console_printf(&globalDTB.uart[0], "UART%d. Addr: %x. Size: %x\r\n", i, globalDTB.uart[i].addr, globalDTB.uart[i].size);
+	console_printf(&globalDTB.uart[0], "SD CARD. Addr: %x. Size: %x\r\n", globalDTB.sd.addr, globalDTB.sd.size);
+	for(int i = 0; i < GPIO_MAX; ++i) console_printf(&globalDTB.uart[0], "GPIO%d. Addr: %x. Size: %x\r\n", i, globalDTB.gpio[i].addr, globalDTB.gpio[i].size);
+	for(int i = 0; i < I2C_MAX; ++i) console_printf(&globalDTB.uart[0], "I2C%d. Addr: %x. Size: %x\r\n", i, globalDTB.i2c[i].addr, globalDTB.i2c[i].size);
 
 	init_pinmux_gpioA(28);
 	init_pinmux_i2c1();
 
-	create_process("/user.elf");
 	// create_process("/user.elf");
-	sbi_set_timer(1);
+	// create_process("/user.elf");
+	// sbi_set_timer(1);
 
 	/*long fd = mkdirMinix3("/trt", 0755);
 	long fd2 = openMinix3("/trt/testFile", 0755);
-	console_printf(globalDTB.uart[0].addr, "Directory = %d\r\n", fd);
-	console_printf(globalDTB.uart[0].addr, "File = %d\r\n", fd2);
+	console_printf(&globalDTB.uart[0], "Directory = %d\r\n", fd);
+	console_printf(&globalDTB.uart[0], "File = %d\r\n", fd2);
 
 	uint8_t bufTest[1035];
 
-	console_printf(globalDTB.uart[0].addr, "Count write = %d\r\n", writeInodeMinix3(fd2, (uint8_t*)"XYZZY123", 8, 0));
-	console_printf(globalDTB.uart[0].addr, "Count read = %d\r\n", readInodeMinix3(fd2, bufTest, 8, 0));
+	console_printf(&globalDTB.uart[0], "Count write = %d\r\n", writeInodeMinix3(fd2, (uint8_t*)"XYZZY123", 8, 0));
+	console_printf(&globalDTB.uart[0], "Count read = %d\r\n", readInodeMinix3(fd2, bufTest, 8, 0));
 
 	for(int i = 0; i < 8; ++i) {
-		if(bufTest[i] == '\n') console_printf("\r");
-		console_printf(globalDTB.uart[0].addr, "%c", bufTest[i]);
+		if(bufTest[i] == '\n') console_printf(&globalDTB.uart[0], "\r");
+		console_printf(&globalDTB.uart[0], "%c", bufTest[i]);
 	}
-	console_printf(globalDTB.uart[0].addr, "\r\n");
+	console_printf(&globalDTB.uart[0], "\r\n");
 
 	unlinkMinix3("/trt/testFile");
 	rmdirMinix3("/trt");*/
 
-	/*
-	create_process(0x80800000); // userSpace/user_test.c	 void main(void)
-	create_process(0x80800000);
-	create_process(0x80800000); 
-	sbi_set_timer(1);
-	*/
-
-	console_printf(globalDTB.uart[0].addr, "\r\nDONE INIT KERNEL\r\n");
+	console_printf(&globalDTB.uart[0], "\r\nDONE INIT KERNEL\r\n");
 
 	while(1) {
 		asm("wfi");

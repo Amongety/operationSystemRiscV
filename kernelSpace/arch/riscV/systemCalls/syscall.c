@@ -26,7 +26,7 @@ uint64_t do_syscall(struct TrapFrame* tf) {
 			
 			break;
 		default:
-			console_printf(globalDTB.uart[0].addr, "Indefinite system calls %d\r\n", tf->a7);
+			console_printf(&globalDTB.uart[0], "Indefinite system calls %d\r\n", tf->a7);
 			break;
 	}
 	__asm__ volatile(

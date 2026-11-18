@@ -1,7 +1,7 @@
-#include "../../../include/kernelSpace/drivers/uart/uart.h"
+#include "../../include/kernelSpace/drivers/uart/uart.h"
 
-void init_uart(uint64_t uartAddr, enum UARTmode mode) {
-	volatile struct UartReg *UARTinit = (struct UartReg*)uartAddr;
+void init_uart(struct Uart *uartInfo, enum UARTmode mode) {
+	volatile struct UartReg *UARTinit = (struct UartReg*)uartInfo->addr;
 	
 	switch(mode) {
 		case queryMode: {
@@ -44,8 +44,8 @@ void init_uart(uint64_t uartAddr, enum UARTmode mode) {
 	};
 }
 
-void writeUart(uint64_t addr, uint8_t symbol) {
-	volatile struct UartReg *uart = (struct UartReg*)addr;
+void writeUart(struct Uart *uartInfo, uint8_t symbol) {
+	volatile struct UartReg *uart = (struct UartReg*)uartInfo->addr;
 
 	while((((uart->LCR >> 7) & 0x1) != 0) && (!((uart->USR >> 1) & 0x1))) {}
 
@@ -54,11 +54,10 @@ void writeUart(uint64_t addr, uint8_t symbol) {
 	while(!((uart->USR >> 2) & 0x1)) {}
 }
 
-uint8_t readUart(uint64_t addr) {
-	volatile struct UartReg *uart = (struct UartReg*)addr;
+uint8_t readUart(struct Uart *uartInfo) {
+	volatile struct UartReg *uart = (struct UartReg*)uartInfo->addr;
 	
 	while(!((uart->USR >> 3) & 0x1)) {}
 
 	return uart->RBR_THR_DLL;
 }
-

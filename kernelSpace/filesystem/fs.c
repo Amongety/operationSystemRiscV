@@ -9,20 +9,20 @@ void fsInitMinix3() {
 	parsingMBRPart(131, &LBA);
 	uint8_t buff[1024], zmap[1024], imap[1024];
 
-	readSDMMC(globalDTB.sd.addr, NONDMA, LBA + 2, (void*)buff, 1024);
+	readSDMMC(&globalDTB.sd, NONDMA, LBA + 2, (void*)buff, 1024);
 	memcpy(&superBlock, buff, sizeof(struct SuperBlockMinix3));
 	offsetBlock = superBlock.block_size / BLOCK_BYTE;
 
 	if(superBlock.magic == MAGIC_MINIX_3) {
-		console_printf(globalDTB.uart[0].addr, "\r\nMINIX 3\r\n");
-		console_printf(globalDTB.uart[0].addr, "LBA: %d\r\nninodes: %d\r\nimap_blocks: %d\r\nzmap_blocks: %d\r\nfirst_data_zone: %d\r\nlog_zone_size: %d\r\nmax_size: %d\r\nzones: %d\r\nmagic: %d\r\nblock_size: %d\r\ndisk_version: %d\r\n", LBA, superBlock.ninodes, superBlock.imap_blocks, superBlock.zmap_blocks, superBlock.first_data_zone, superBlock.log_zone_size, superBlock.max_size, superBlock.zones, superBlock.magic, superBlock.block_size, superBlock.disk_version);
+		console_printf(&globalDTB.uart[0], "\r\nMINIX 3\r\n");
+		console_printf(&globalDTB.uart[0], "LBA: %d\r\nninodes: %d\r\nimap_blocks: %d\r\nzmap_blocks: %d\r\nfirst_data_zone: %d\r\nlog_zone_size: %d\r\nmax_size: %d\r\nzones: %d\r\nmagic: %d\r\nblock_size: %d\r\ndisk_version: %d\r\n", LBA, superBlock.ninodes, superBlock.imap_blocks, superBlock.zmap_blocks, superBlock.first_data_zone, superBlock.log_zone_size, superBlock.max_size, superBlock.zones, superBlock.magic, superBlock.block_size, superBlock.disk_version);
 	}
 }
 
 struct InodeMinix3 getInodeMinix3(long inode_num) {
 	struct InodeMinix3 inodeByte[superBlock.block_size / sizeof(struct InodeMinix3)];
 
-	readSDMMC(globalDTB.sd.addr, NONDMA, LBA + ((2 + superBlock.imap_blocks + superBlock.zmap_blocks + ((inode_num - 1) / (superBlock.block_size / sizeof(struct InodeMinix3)))) * offsetBlock), (void*)inodeByte, superBlock.block_size);
+	readSDMMC(&globalDTB.sd, NONDMA, LBA + ((2 + superBlock.imap_blocks + superBlock.zmap_blocks + ((inode_num - 1) / (superBlock.block_size / sizeof(struct InodeMinix3)))) * offsetBlock), (void*)inodeByte, superBlock.block_size);
 
 	long inodeBit = (inode_num - 1) % (superBlock.block_size / sizeof(struct InodeMinix3));
 
@@ -35,13 +35,13 @@ void putInodeMinix3(long inode_num, struct InodeMinix3 src) {
 	struct InodeMinix3 inodeByte[superBlock.block_size / sizeof(struct InodeMinix3)];
 	uint64_t index = LBA + ((2 + superBlock.imap_blocks + superBlock.zmap_blocks + ((inode_num - 1) / (superBlock.block_size / sizeof(struct InodeMinix3)))) * offsetBlock);
 
-	readSDMMC(globalDTB.sd.addr, NONDMA, index, (void*)inodeByte, superBlock.block_size);
+	readSDMMC(&globalDTB.sd, NONDMA, index, (void*)inodeByte, superBlock.block_size);
 
 	long inodeBit = (inode_num - 1) % (superBlock.block_size / sizeof(struct InodeMinix3));
 
 	memcpy((void*)&inodeByte[inodeBit], (void*)&src, sizeof(struct InodeMinix3));
 
-	writeSDMMC(globalDTB.sd.addr, NONDMA, index, (void*)inodeByte, superBlock.block_size);
+	writeSDMMC(&globalDTB.sd, NONDMA, index, (void*)inodeByte, superBlock.block_size);
 }
 
 uint32_t processingZoneMinix3(struct InodeMinix3 inode, long logBlck, uint32_t* buff) {
@@ -53,7 +53,7 @@ uint32_t processingZoneMinix3(struct InodeMinix3 inode, long logBlck, uint32_t* 
 	else if(logBlck < 7 + listSize) {
 		if(inode.zone[7] == 0) return 0;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode.zone[7] * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode.zone[7] * offsetBlock, (void*)buff, superBlock.block_size);
 
 		return buff[logBlck - 7];
 	}
@@ -64,11 +64,11 @@ uint32_t processingZoneMinix3(struct InodeMinix3 inode, long logBlck, uint32_t* 
 		uint64_t lvl2 = curBlock / listSize;
 		uint64_t dataBlock = curBlock % listSize;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode.zone[8] * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode.zone[8] * offsetBlock, (void*)buff, superBlock.block_size);
 		uint64_t zone1 = buff[lvl2];
 		if(zone1 == 0) return 0;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
 
 		return buff[dataBlock];
 	}
@@ -80,15 +80,15 @@ uint32_t processingZoneMinix3(struct InodeMinix3 inode, long logBlck, uint32_t* 
 		uint64_t lvl2 = (offset / listSize) % listSize;
 		uint64_t dataBlock = offset % listSize;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode.zone[9] * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode.zone[9] * offsetBlock, (void*)buff, superBlock.block_size);
 		uint64_t zone1 = buff[lvl1];
 		if(zone1 == 0) return 0;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
 		uint64_t zone2 = buff[lvl2];
 		if(zone2 == 0) return 0;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone2 * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + zone2 * offsetBlock, (void*)buff, superBlock.block_size);
 
 		return buff[dataBlock];
 	}
@@ -104,7 +104,7 @@ uint32_t ensureZoneMinix3(struct InodeMinix3* inode, long logBlck, uint32_t* buf
 	if(logBlck < 7) {
 		if(inode->zone[logBlck] == 0) {
 			inode->zone[logBlck] = allocZoneMinix3();
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[logBlck] * offsetBlock, (void*)zeroBuf, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[logBlck] * offsetBlock, (void*)zeroBuf, superBlock.block_size);
 		}
 
 		return inode->zone[logBlck];
@@ -112,14 +112,14 @@ uint32_t ensureZoneMinix3(struct InodeMinix3* inode, long logBlck, uint32_t* buf
 	else if(logBlck < 7 + listSize) {
 		if(inode->zone[7] == 0) {
 			inode->zone[7] = allocZoneMinix3();
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[7] * offsetBlock, (void*)zeroBuf, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[7] * offsetBlock, (void*)zeroBuf, superBlock.block_size);
 		}
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[7] * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[7] * offsetBlock, (void*)buff, superBlock.block_size);
 
 		if(buff[logBlck - 7] == 0) {
 			buff[logBlck - 7] = allocZoneMinix3();
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[7] * offsetBlock, (void*)buff, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[7] * offsetBlock, (void*)buff, superBlock.block_size);
 		}
 
 		return buff[logBlck - 7];
@@ -127,27 +127,27 @@ uint32_t ensureZoneMinix3(struct InodeMinix3* inode, long logBlck, uint32_t* buf
 	else if(logBlck < 7 + listSize + listSize * listSize) {
 		if(inode->zone[8] == 0) {
 			inode->zone[8] = allocZoneMinix3();
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[8] * offsetBlock, (void*)zeroBuf, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[8] * offsetBlock, (void*)zeroBuf, superBlock.block_size);
 		}
 
 		uint64_t curBlock = logBlck - 7 - listSize;
 		uint64_t lvl2 = curBlock / listSize;
 		uint64_t dataBlock = curBlock % listSize;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[8] * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[8] * offsetBlock, (void*)buff, superBlock.block_size);
 	
 		uint64_t zone1 = buff[lvl2];
 		if(zone1 == 0) {
 			zone1 = allocZoneMinix3();
 			buff[lvl2] = zone1;
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[8] * offsetBlock, (void*)buff, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[8] * offsetBlock, (void*)buff, superBlock.block_size);
 		}
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
 
 		if(buff[dataBlock] == 0) {
 			buff[dataBlock] = allocZoneMinix3();
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
 		}
 
 		return buff[dataBlock];
@@ -155,7 +155,7 @@ uint32_t ensureZoneMinix3(struct InodeMinix3* inode, long logBlck, uint32_t* buf
 	else if(logBlck < 7 + listSize + listSize * listSize + listSize * listSize * listSize){
 		if(inode->zone[9] == 0) {
 			inode->zone[9] = allocZoneMinix3();
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[9] * offsetBlock, (void*)zeroBuf, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[9] * offsetBlock, (void*)zeroBuf, superBlock.block_size);
 		}
 
 		uint64_t offset = logBlck - 7 - listSize - listSize * listSize;
@@ -163,29 +163,29 @@ uint32_t ensureZoneMinix3(struct InodeMinix3* inode, long logBlck, uint32_t* buf
 		uint64_t lvl2 = (offset / listSize) % listSize;
 		uint64_t dataBlock = offset % listSize;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[9] * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[9] * offsetBlock, (void*)buff, superBlock.block_size);
 
 		uint32_t zone1 = buff[lvl1];
 		if(zone1 == 0) {
 			zone1 = allocZoneMinix3();
 			buff[lvl1] = zone1;
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode->zone[9] * offsetBlock, (void*)buff, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode->zone[9] * offsetBlock, (void*)buff, superBlock.block_size);
 		}
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
 
 		uint64_t zone2 = buff[lvl2];
 		if(zone2 == 0) {
 			zone2 = allocZoneMinix3();
 			buff[lvl2] = zone2;
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + zone1 * offsetBlock, (void*)buff, superBlock.block_size);
 		}
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone2 * offsetBlock, (void*)buff, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + zone2 * offsetBlock, (void*)buff, superBlock.block_size);
 
 		if(buff[dataBlock] == 0) {
 			buff[dataBlock] = allocZoneMinix3();
-			writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + zone2 * offsetBlock, (void*)buff, superBlock.block_size);
+			writeSDMMC(&globalDTB.sd, NONDMA, LBA + zone2 * offsetBlock, (void*)buff, superBlock.block_size);
 		}
 
 		return buff[dataBlock];
@@ -206,7 +206,7 @@ void deleteZonesMinix3(struct InodeMinix3 inode, uint32_t* buff) {
     }
 
     if(countBlk > 0 && inode.zone[7]) {
-        readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode.zone[7] * offsetBlock, (void*)buff, superBlock.block_size);
+        readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode.zone[7] * offsetBlock, (void*)buff, superBlock.block_size);
 
         for(int i = 0; countBlk > 0 && i < listSize; ++i) {
             if(buff[i]) {
@@ -218,14 +218,14 @@ void deleteZonesMinix3(struct InodeMinix3 inode, uint32_t* buff) {
     }
 
     if(countBlk > 0 && inode.zone[8]) {
-        readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode.zone[8] * offsetBlock, (void*)buff, superBlock.block_size);
+        readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode.zone[8] * offsetBlock, (void*)buff, superBlock.block_size);
 
         for(int i = 0; i < listSize; ++i) {
 			if(buff[i] == 0) continue;
 			
 			uint32_t lvl2[listSize];
 
-            readSDMMC(globalDTB.sd.addr, NONDMA, LBA + buff[i] * offsetBlock, (void*)lvl2, superBlock.block_size);
+            readSDMMC(&globalDTB.sd, NONDMA, LBA + buff[i] * offsetBlock, (void*)lvl2, superBlock.block_size);
 
             for(int j = 0; countBlk > 0 && j < listSize; ++j) {
                 if(lvl2[j]) {
@@ -239,21 +239,21 @@ void deleteZonesMinix3(struct InodeMinix3 inode, uint32_t* buff) {
     }
 
     if(countBlk > 0 && inode.zone[9]) {
-        readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)inode.zone[9] * offsetBlock, (void*)buff, superBlock.block_size);
+        readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)inode.zone[9] * offsetBlock, (void*)buff, superBlock.block_size);
 
         for(int i = 0; i < listSize; ++i) {
             if(buff[i] == 0) continue;
 
 			uint32_t lvl3[listSize];
 
-            readSDMMC(globalDTB.sd.addr, NONDMA, LBA + buff[i] * offsetBlock, (void*)lvl3, superBlock.block_size);
+            readSDMMC(&globalDTB.sd, NONDMA, LBA + buff[i] * offsetBlock, (void*)lvl3, superBlock.block_size);
 
             for(int j = 0; j < listSize; ++j) {
                 if(lvl3[j] == 0) continue;
 
 				uint32_t lvl2[listSize];
 
-                readSDMMC(globalDTB.sd.addr, NONDMA, LBA + lvl3[j] * offsetBlock, (void*)lvl2, superBlock.block_size);
+                readSDMMC(&globalDTB.sd, NONDMA, LBA + lvl3[j] * offsetBlock, (void*)lvl2, superBlock.block_size);
 
                 for(int k = 0; countBlk > 0 && k < listSize; ++k) {
                     if(lvl2[k]) {
@@ -273,7 +273,7 @@ uint32_t allocZoneMinix3() {
 	uint8_t zmap[superBlock.block_size];
 
 	for(uint32_t i = 0; i < superBlock.zmap_blocks; ++i) {
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (2 + superBlock.imap_blocks + i) * offsetBlock, (void*)zmap, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + (2 + superBlock.imap_blocks + i) * offsetBlock, (void*)zmap, superBlock.block_size);
 		
 		for(int byte = 0; byte < superBlock.block_size; ++byte) {
 			if(zmap[byte] == 0xFF) continue;
@@ -285,7 +285,7 @@ uint32_t allocZoneMinix3() {
 
 				if(!(zmap[byte] & (1 << bit))) {
 					zmap[byte] |= (1 << bit);
-					writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (2 + superBlock.imap_blocks + i) * offsetBlock, (void*)zmap, superBlock.block_size);
+					writeSDMMC(&globalDTB.sd, NONDMA, LBA + (2 + superBlock.imap_blocks + i) * offsetBlock, (void*)zmap, superBlock.block_size);
 					
 					return z;
 				}
@@ -309,11 +309,11 @@ int deallocZmapMinix3(uint32_t zone) {
 	uint8_t zmap[superBlock.block_size];
 	uint64_t index = LBA + (2 + superBlock.imap_blocks + i) * offsetBlock;
 
-	readSDMMC(globalDTB.sd.addr, NONDMA, index, zmap, superBlock.block_size);
+	readSDMMC(&globalDTB.sd, NONDMA, index, zmap, superBlock.block_size);
 
 	zmap[byte] &= ~(1 << bit);
 
-	writeSDMMC(globalDTB.sd.addr, NONDMA, index, zmap, superBlock.block_size);
+	writeSDMMC(&globalDTB.sd, NONDMA, index, zmap, superBlock.block_size);
 
 	return 0;
 }
@@ -322,7 +322,7 @@ uint32_t allocImapMinix3() {
 	uint8_t imap[superBlock.block_size];
 
 	for(int i = 0; i < superBlock.imap_blocks; ++i) {
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (2 + i) * offsetBlock, (void*)imap, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + (2 + i) * offsetBlock, (void*)imap, superBlock.block_size);
 
 		for(int byte = 0; byte < superBlock.block_size; ++byte) {
 			if(imap[byte] == 0xFF) continue;
@@ -334,7 +334,7 @@ uint32_t allocImapMinix3() {
 
 				if((!(imap[byte] & (1 << bit))) && (inode != 0)) {
 					imap[byte] |= (1 << bit);
-					writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (2 + i) * offsetBlock, (void*)imap, superBlock.block_size);
+					writeSDMMC(&globalDTB.sd, NONDMA, LBA + (2 + i) * offsetBlock, (void*)imap, superBlock.block_size);
 
 					return inode;
 				}
@@ -357,9 +357,9 @@ int deallocImapMinix3(long inode_num) {
 	uint8_t imap[superBlock.block_size];
 	uint64_t index = LBA + (2 + i) * offsetBlock;
 
-	readSDMMC(globalDTB.sd.addr, NONDMA, index, (void*)imap, superBlock.block_size);
+	readSDMMC(&globalDTB.sd, NONDMA, index, (void*)imap, superBlock.block_size);
 	imap[byte] &= ~(1 << bit);
-	writeSDMMC(globalDTB.sd.addr, NONDMA, index, (void*)imap, superBlock.block_size);
+	writeSDMMC(&globalDTB.sd, NONDMA, index, (void*)imap, superBlock.block_size);
 
 	return 0;
 }
@@ -385,7 +385,7 @@ int allocDirMinix3(uint32_t chInode, uint32_t pInode, const char* name) {
 			memset(dir, 0, superBlock.block_size);
 		}
 		else {
-			readSDMMC(globalDTB.sd.addr, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
+			readSDMMC(&globalDTB.sd, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
 		}
 
 		for(int i = 0; i < sizeDir; ++i) {
@@ -396,7 +396,7 @@ int allocDirMinix3(uint32_t chInode, uint32_t pInode, const char* name) {
                 dir[i].name[nameLen] = '\0';
 				dir[i].inode = chInode;
 				
-				writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
+				writeSDMMC(&globalDTB.sd, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
 
 				if(parentInode.size < count) {
 					parentInode.size = count;
@@ -417,7 +417,7 @@ int allocDirMinix3(uint32_t chInode, uint32_t pInode, const char* name) {
 	dir[0].name[nameLen] = '\0';
 	dir[0].inode = chInode;
 
-	writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
+	writeSDMMC(&globalDTB.sd, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
 	
 	count += sizeof(struct DirEntryMinix3);
 
@@ -441,7 +441,7 @@ long searchPath(struct DirInfo* di) {
 				uint64_t idx = processingZoneMinix3(inode, blk, (uint32_t*)buffer);
 				if(idx == 0) continue;
 
-				readSDMMC(globalDTB.sd.addr, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
+				readSDMMC(&globalDTB.sd, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
 
 				for(int i = 0; i < sizeDir; ++i) {
 					len += sizeof(struct DirEntryMinix3);
@@ -595,7 +595,7 @@ int rmdirMinix3(const char* path) {
 		uint64_t idx = processingZoneMinix3(inode, blk, (uint32_t*)buffer);
 		if(idx == 0) continue;
 
-		readSDMMC(globalDTB.sd.addr, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
+		readSDMMC(&globalDTB.sd, NONDMA, LBA + idx * offsetBlock, (void*)dir, superBlock.block_size);
 
 		for(int i = 0; i < sizeDir; ++i) {
 			len += sizeof(struct DirEntryMinix3);
@@ -627,12 +627,12 @@ int deleteDirMinix3(struct DirInfo di) {
 	int sizeDir = superBlock.block_size / sizeof(struct DirEntryMinix3);
 	struct DirEntryMinix3 dir[sizeDir];
 
-	readSDMMC(globalDTB.sd.addr, NONDMA, LBA + di.sector * offsetBlock, (void*)dir, superBlock.block_size);
+	readSDMMC(&globalDTB.sd, NONDMA, LBA + di.sector * offsetBlock, (void*)dir, superBlock.block_size);
 
 	dir[di.indexDir].inode = 0;
 	memset(dir[di.indexDir].name, 0, LEN_NAME_DIR_ENTRY);
 
-	writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + di.sector * offsetBlock, (void*)dir, superBlock.block_size);
+	writeSDMMC(&globalDTB.sd, NONDMA, LBA + di.sector * offsetBlock, (void*)dir, superBlock.block_size);
 
 	return 0;
 }
@@ -700,7 +700,7 @@ uint64_t readInodeMinix3(long inode_num, uint8_t* buff, uint64_t size, uint64_t 
 					continue;
 				}
 				
-				readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)idx * offsetBlock, (void*)buffer, superBlock.block_size);
+				readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)idx * offsetBlock, (void*)buffer, superBlock.block_size);
 				
 				memcpy((void*)(buff + bytesRead), (void*)(buffer + blockOffset), curRead);
 				
@@ -729,11 +729,11 @@ uint64_t writeInodeMinix3(long inode_num, uint8_t* buff, uint64_t size, uint64_t
 				uint32_t idx = ensureZoneMinix3(&inode, blk, (uint32_t*)buffer);
 				if(idx == 0) return bytesWrite;
 				
-				readSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)idx * offsetBlock, (void*)buffer, superBlock.block_size);
+				readSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)idx * offsetBlock, (void*)buffer, superBlock.block_size);
 
 				memcpy((void*)(buffer + blockOffset), (void*)(buff + bytesWrite), curWrite);
 				
-				writeSDMMC(globalDTB.sd.addr, NONDMA, LBA + (uint64_t)idx * offsetBlock, (void*)buffer, superBlock.block_size);
+				writeSDMMC(&globalDTB.sd, NONDMA, LBA + (uint64_t)idx * offsetBlock, (void*)buffer, superBlock.block_size);
 				
 				bytesWrite += curWrite;
 				blockOffset = 0;

@@ -3,7 +3,7 @@
 
 #include "kexit.h"
 #include "kioctl.h"
-#include "../common.h"
+// #include "../common.h"
 
 #define SYSCALL_CLONE 					0xdc
 #define SYSCALL_IOCTL                   0x1d
